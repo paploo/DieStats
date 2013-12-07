@@ -13,7 +13,12 @@ object App {
     for (i <- 1 until 10) yield println((i, hist(i)))
 
     val pdf = hist.toPDF
+    //val pdf = PDF.fromMap(hist.toMap)
     println(pdf)
+
+    for( i <- pdf ) yield println(i)
+    println(pdf(4))
+    val xs = pdf.take(6)
   }
 
 }

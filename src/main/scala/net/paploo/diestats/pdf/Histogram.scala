@@ -13,5 +13,5 @@ class Histogram[T] extends mutable.HashMap[T, Long] {
     this += (key -> newValue)
   }
 
-  def toPDF(implicit ord: Ordering[T]) = PDF.fromMap[T, Double]( mapValues(_.toDouble) )
+  def toPDF(implicit fk: T => Int, fv: Long => Double) = PDF.fromMap[T, Long](this)(fk,fv)
 }
