@@ -9,7 +9,11 @@ object App {
     hist << 6 << 6 << 7
     hist << 8 << 8 << 2 << 8
 
-    println(hist)
+    val hist2 = new Histogram[Int]()
+    hist2 << 6 << 6 << 1
+
+    hist compose hist2
+
     for (i <- 1 until 10) yield println((i, hist(i)))
 
     val pdf = hist.toPDF
