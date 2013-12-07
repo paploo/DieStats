@@ -16,9 +16,11 @@ object App {
     //val pdf = PDF.fromMap(hist.toMap)
     println(pdf)
 
-    for( i <- pdf ) yield println(i)
-    println(pdf(4))
-    val xs = pdf.take(6)
+    val pdf1 = PDF(2 -> 1, 3 -> 2, 4 -> 1)
+    val pdf2 = PDF(1 -> 1, 2 -> 1)
+    println(pdf1)
+    println(pdf2)
+    println(pdf1 compose pdf2)
   }
 
 }
