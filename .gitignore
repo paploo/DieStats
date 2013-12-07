@@ -8,6 +8,10 @@ target
 .settings
 .worksheet
 
+# IntelliJ
+.idea
+.idea_modules
+
 # Vim
 *.swp
 *.swo
