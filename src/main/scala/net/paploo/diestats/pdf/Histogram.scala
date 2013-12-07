@@ -1,0 +1,17 @@
+package net.paploo.diestats.pdf
+
+import scala.collection.mutable
+
+class Histogram[T] extends mutable.HashMap[T, Long] {
+
+  def sum = foldLeft[Long](0)((acc, pair) => acc + pair._2)
+
+  override def default(key: T) = getOrElse(key, 0)
+
+  def <<(key: T): this.type = {
+    val newValue: Long = this(key) + 1
+    this += (key -> newValue)
+  }
+
+  def toPDF(implicit ord: Ordering[T]) = PDF.fromMap[T, Double]( mapValues(_.toDouble) )
+}
