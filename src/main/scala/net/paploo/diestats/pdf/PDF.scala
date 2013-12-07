@@ -2,7 +2,7 @@ package net.paploo.diestats.pdf
 
 import scala.collection.immutable.SortedMap
 import scala.collection.IterableLike
-import scala.collection.mutable.Builder
+import scala.collection.mutable
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 
@@ -15,21 +15,21 @@ object PDF {
 
   def fromMap[A, B](inputMap: scala.collection.Map[A, B])(implicit fk: A => Int, fv: B => Double): PDF = {
     val m = inputMap.map {
-      case (k, v) => (fk(k) -> fv(v))
+      case (k, v) => fk(k) -> fv(v)
     }
     val sum = m.foldLeft(0.0)((acc, pair) => acc + pair._2)
     val s = m.toSeq.map {
-      case (k, v) => (k -> (v / sum))
+      case (k, v) => k -> (v / sum)
     }
     new PDF(SortedMap(s: _*))
   }
 
-  def newBuilder: Builder[(Int, Double), PDF] = new ArrayBuffer[(Int, Double)] mapResult (x => PDF(x.toSeq: _*))
+  def newBuilder: mutable.Builder[(Int, Double), PDF] = new ArrayBuffer[(Int, Double)] mapResult (x => PDF(x.toSeq: _*))
 
   implicit def canBuildFrom: CanBuildFrom[PDF, (Int, Double), PDF] = new CanBuildFrom[PDF, (Int, Double), PDF] {
-    def apply(): Builder[(Int, Double), PDF] = newBuilder
+    def apply(): mutable.Builder[(Int, Double), PDF] = newBuilder
 
-    def apply(from: PDF): Builder[(Int, Double), PDF] = newBuilder
+    def apply(from: PDF): mutable.Builder[(Int, Double), PDF] = newBuilder
   }
 }
 
@@ -47,7 +47,7 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
 
   def keys: Iterable[Int] = keysIterator.toSeq
 
-  def values: Iterable[Double] = keysIterator.toSeq.map(apply(_))
+  def values: Iterable[Double] = keysIterator.toSeq.map(apply)
 
   def compose(other: PDF) = {
     val tuples = for {
@@ -60,8 +60,8 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
     PDF(m)
   }
 
-  override def newBuilder: Builder[(Int, Double), PDF] = PDF.newBuilder
+  override def newBuilder: mutable.Builder[(Int, Double), PDF] = PDF.newBuilder
 
-  override def toString: String = s"${this.getClass.getSimpleName}(${map.toString})"
+  override def toString(): String = s"${this.getClass.getSimpleName}(${map.toString()})"
 
 }
