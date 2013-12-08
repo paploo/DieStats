@@ -34,9 +34,7 @@ object PDF {
   //def apply[A,B](map: Map[A,B])(implicit fk: A => Int, fv: B => Double): PDF = fromSeq(map.toSeq)
 
   def fromSeq[A, B](inputSeq: Seq[(A, B)])(implicit fk: A => Int, fv: B => Double): PDF = {
-    val typedSeq = inputSeq.map {
-      case (k, v) => (fk(k), fv(v))
-    }
+    val typedSeq = inputSeq.map {case (k, v) => (fk(k), fv(v))}
     val valueMap = typedSeq.groupBy(_._1).mapValues(seq => seq.map(_._2).sum)
     val sum = valueMap.foldLeft(0.0)((acc, pair) => acc + pair._2)
     val pairs = valueMap.mapValues(_ / sum).toSeq
@@ -72,7 +70,7 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
   def values: Iterable[Double] = keysIterator.toSeq.map(apply)
 
   /** Return the mean key value as a Double */
-  def meanKey: Double = foldLeft(0.0)( (acc, pair) => acc + (pair._1 * pair._2))
+  def meanKey: Double = foldLeft(0.0)((acc, pair) => acc + (pair._1 * pair._2))
 
   /** Return the median key value as an Int.
     *
@@ -81,7 +79,7 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
   def medianKey: Int = {
     var sum = 0.0
     val result = find {
-      case (k,v) =>
+      case (k, v) =>
         sum = sum + v
         sum >= 0.5
     }
@@ -92,9 +90,9 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
   def modeKeys: SortedSet[Int] = modes.map(_._1)
 
   def modes: SortedSet[(Int, Double)] = {
-    val groups = groupBy {case (k,v) => v}
+    val groups = groupBy {case (k, v) => v}
     val maxGroupKey = groups.keys.max
-    toSortedSet( groups(maxGroupKey).toSet )
+    toSortedSet(groups(maxGroupKey).toSet)
   }
 
   // TODO: Skip if either value is zero.
@@ -114,6 +112,6 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
 
   override def toString(): String = s"${this.getClass.getSimpleName}(${map.toString()})"
 
-  private def toSortedSet[T](set: Set[T])(implicit ord: Ordering[T]): SortedSet[T] = SortedSet( set.toSeq: _* )
+  private def toSortedSet[T](set: Set[T])(implicit ord: Ordering[T]): SortedSet[T] = SortedSet(set.toSeq: _*)
 
 }

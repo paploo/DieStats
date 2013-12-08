@@ -5,6 +5,7 @@ import net.paploo.diestats.pdf.PDFSeq._
 
 object Expr {
   def apply(pdf: PDF): Expr = PDFExpr(pdf)
+
   def apply(mod: Int): Expr = Mod(mod)
 
   lazy val d2 = Die(2)
@@ -30,9 +31,7 @@ trait Expr {
   def -(c: Int): Expr = this - Mod(c)
 
   def unary_- : Expr = {
-    val pdf = toPDF.map {
-      case (k, v) => (-k, v)
-    }
+    val pdf = toPDF.map {case (k, v) => (-k, v)}
     PDFExpr(pdf)
   }
 
