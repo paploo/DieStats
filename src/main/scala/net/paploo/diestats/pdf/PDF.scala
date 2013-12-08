@@ -5,26 +5,42 @@ import scala.collection.IterableLike
 import scala.collection.mutable
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
+import scala.language.implicitConversions
+
+object PDFSeq {
+  implicit def apply[A,B](seq: Seq[(A,B)]): PDFSeq[A,B] = new PDFSeq(seq)
+  implicit def unapply[A,B](pseq: PDFSeq[A,B]): Option[Seq[(A,B)]] = Some(pseq.toSeq)
+  implicit def toSeq[A,B](pseq: PDFSeq[A,B]): Seq[(A,B)] = pseq.toSeq
+}
+
+class PDFSeq[A,B](seq: Seq[(A,B)]) {
+  def toPDF(implicit fk: A => Int, fv: B => Double) = PDF.fromSeq(seq)
+  def toSeq = seq
+}
 
 object PDF {
   lazy val empty: PDF = new PDF(SortedMap.empty)
 
-  def apply[A, B](pairs: (A, B)*)(implicit fk: A => Int, fv: B => Double): PDF = fromMap(Map(pairs: _*))
+  def apply[A,B](pairs: (A,B)*)(implicit fk: A => Int, fv: B => Double): PDF = fromSeq(pairs)
 
-  def apply[A, B](inputMap: scala.collection.Map[A, B])(implicit fk: A => Int, fv: B => Double): PDF = fromMap(inputMap)(fk, fv)
+  //Can't do this due to type erasure.
+  //def apply[A,B](seq: Seq[(A,B)])(implicit fk: A => Int, fv: B => Double): PDF = fromSeq(seq)
 
-  def fromMap[A, B](inputMap: scala.collection.Map[A, B])(implicit fk: A => Int, fv: B => Double): PDF = {
-    val m = inputMap.map {
-      case (k, v) => fk(k) -> fv(v)
-    }
-    val sum = m.foldLeft(0.0)((acc, pair) => acc + pair._2)
-    val s = m.toSeq.map {
-      case (k, v) => k -> (v / sum)
-    }
-    new PDF(SortedMap(s: _*))
+  //Not actually useful.
+  //def apply[A,B](map: Map[A,B])(implicit fk: A => Int, fv: B => Double): PDF = fromSeq(map.toSeq)
+
+  def fromSeq[A,B](inputSeq: Seq[(A,B)])(implicit fk: A => Int, fv: B => Double): PDF = {
+    val typedSeq = inputSeq.map {case (k,v) => (fk(k), fv(v))}
+    val valueMap = typedSeq.groupBy(_._1).mapValues(seq => seq.map(_._2).sum)
+    val sum = valueMap.foldLeft(0.0)((acc, pair) => acc + pair._2)
+    val pairs = valueMap.mapValues(_/sum).toSeq
+    new PDF(SortedMap(pairs: _*))
   }
 
-  def newBuilder: mutable.Builder[(Int, Double), PDF] = new ArrayBuffer[(Int, Double)] mapResult (x => PDF(x.toSeq: _*))
+  // Doesn't work because of the implicit converstions that need to get passed through to fromSeq.
+  //def newBuilder: mutable.Builder[(Int, Double), PDF] = new ArrayBuffer[(Int, Double)] mapResult fromSeq
+
+  def newBuilder: mutable.Builder[(Int, Double), PDF] = (new ArrayBuffer[(Int,Double)]).mapResult(s => fromSeq(s))
 
   implicit def canBuildFrom: CanBuildFrom[PDF, (Int, Double), PDF] = new CanBuildFrom[PDF, (Int, Double), PDF] {
     def apply(): mutable.Builder[(Int, Double), PDF] = newBuilder
@@ -43,22 +59,29 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
 
   override def iterator: Iterator[(Int, Double)] = keysIterator.map(k => (k, apply(k)))
 
-  def keysIterator: Iterator[Int] = Range(minKey, maxKey+1).iterator
+  def keysIterator: Iterator[Int] = Range(minKey, maxKey + 1).iterator
 
   def keys: Iterable[Int] = keysIterator.toSeq
 
   def values: Iterable[Double] = keysIterator.toSeq.map(apply)
 
-  def compose(other: PDF) = {
-    val tuples = for {
-      (k1, v1) <- this.toList
-      (k2, v2) <- other.toList
-    } yield (k1+k2, v1*v2)
+  // TODO: Skip if either value is zero.
+  /*
+  * Note that without the assignment to pair, this compiles to:
+  * pdf1.flatMap { (k1,v1) => pdf2.map { case (k2,v2) => (k1,k2, v1*v2) }
+  * Which means the intermediate maps get renormalized before being combined in the flatmap phase.
+  *
+   */
+  def compose(other: PDF) = for {
+    (k1, v1) <- this
+    (k2, v2) <- other
+    pair = (k1+k2, v1*v2) //This is because the renormalization causes the inter
+  } yield pair
 
-    val m = tuples.groupBy(_._1).mapValues(_.map(_._2).sum)
-
-    PDF(m)
-  }
+  def composeBroken(other: PDF) = for {
+    (k1, v1) <- this
+    (k2, v2) <- other
+  } yield (k1+k2, v1*v2)
 
   override def newBuilder: mutable.Builder[(Int, Double), PDF] = PDF.newBuilder
 
