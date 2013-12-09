@@ -67,10 +67,10 @@ object PDF {
     new PDF(SortedMap(pairs: _*))
   }
 
-  // Doesn't work because of the implicit converstions that need to get passed through to fromSeq.
+  // Doesn't work because of the implicit conversions that need to get passed through to fromSeq.
   //def newBuilder: mutable.Builder[(Int, Double), PDF] = new ArrayBuffer[(Int, Double)] mapResult fromSeq
 
-  def newBuilder: mutable.Builder[(Int, Double), PDF] = (new ArrayBuffer[(Int, Double)]).mapResult(s => fromSeq(s))
+  def newBuilder: mutable.Builder[(Int, Double), PDF] = new ArrayBuffer[(Int, Double)].mapResult(s => fromSeq(s))
 
   implicit def canBuildFrom: CanBuildFrom[PDF, (Int, Double), PDF] = new CanBuildFrom[PDF, (Int, Double), PDF] {
     def apply(): mutable.Builder[(Int, Double), PDF] = newBuilder
@@ -80,7 +80,7 @@ object PDF {
 }
 
 /**
- * Encapsulates a disctere probibility density function whose domain is integers.
+ * Encapsulates a discrete probability density function whose domain is integers.
  *
  * The PDF is immutable and always normalized. This means much care must be
  * taken when using methods such as [[take]] because the result will be
@@ -134,7 +134,7 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
   /**
    * Composes this PDF with another one. This is done according to the following
    * rules:
-   * For each combination of key-value pairs from the outter product, generate a new
+   * For each combination of key-value pairs from the outer product, generate a new
    * pair whose key is the sum of the keys, and value is the product of the values.
    * These pairs are then combined and normalized into a new [[PDF]]
    *
@@ -151,7 +151,7 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
     (k2, v2) <- other
     if v1 != 0.0 //Keep the product map sparse
     if v2 != 0.0 //Keep the product map sparse
-    pair = (k1 + k2, v1 * v2) //This is because we renormalize the inside maps before they are combined with flatMaps otherwise.
+    pair = (k1 + k2, v1 * v2) //This is because we re-normalize the inside maps before they are combined with flatMaps otherwise.
   } yield pair
 
   override def newBuilder: mutable.Builder[(Int, Double), PDF] = PDF.newBuilder

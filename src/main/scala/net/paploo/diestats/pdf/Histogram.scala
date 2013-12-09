@@ -6,7 +6,7 @@ import scala.collection.mutable
  * A mutable accumulation buffer for histogram counts that can easily be converted to a [[PDF]] instance.
  *
  * The primary methods of interest are [[<<]], [[compose]], and [[toPDF]].
- *@tparam T Any type that can be implicitely converted to an Integer later.
+ *@tparam T Any type that can be implicitly converted to an Integer later.
  */
 class Histogram[T] extends mutable.HashMap[T, Long] {
 
@@ -43,7 +43,7 @@ class Histogram[T] extends mutable.HashMap[T, Long] {
   /**
    * Converts the histogram to an immutable PDF
    * @param fk Implicit conversion function from T => Int
-   * @param fv Implicit converstion function from Long => Double
+   * @param fv Implicit conversion function from Long => Double
    * @return A PDF.
    */
   def toPDF(implicit fk: T => Int, fv: Long => Double) = PDF.fromSeq(toSeq)
