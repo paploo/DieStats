@@ -143,14 +143,14 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
    * of keys, we compose the probabilities by multiplying them.  We then
    * collect up by key, adding the various probabilities found, and produce
    * a new [[PDF]]
-   *
-   * TODO: We need to skip when either value is zero to keep the underlying Map sparse.
    * @param other The other PDF
    * @return A new PDF
    */
   def compose(other: PDF): PDF = for {
     (k1, v1) <- this
     (k2, v2) <- other
+    if v1 != 0.0 //Keep the product map sparse
+    if v2 != 0.0 //Keep the product map sparse
     pair = (k1 + k2, v1 * v2) //This is because we renormalize the inside maps before they are combined with flatMaps otherwise.
   } yield pair
 
