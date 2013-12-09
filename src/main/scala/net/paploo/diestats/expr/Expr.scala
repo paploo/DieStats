@@ -18,6 +18,9 @@ object Expr {
   lazy val dp = Die(100) - 1
 }
 
+/**
+ * Defines the operations available at the given node of a dice expression.
+ */
 trait Expr {
 
   def +(expr: Expr): Expr = Expr(toPDF) + expr
@@ -49,12 +52,23 @@ trait Expr {
 
 }
 
+/**
+ * Encapsulates a raw [[PDF]] as an [[Expr]].
+ *
+ * This is frequently used to hold the composite [[PDF]] from reduction of more
+ * simple expressions.
+ * @param pdf The [[PDF]] to encapsulate.
+ */
 case class PDFExpr(pdf: PDF) extends Expr {
   override def +(expr: Expr): Expr = PDFExpr(toPDF compose expr.toPDF)
 
   override lazy val toPDF = pdf
 }
 
+/**
+ * [[Expr]] for a single Die whose sides are 1 through [[sides]] inclusive.
+ * @param sides The number of sides.
+ */
 case class Die(sides: Int) extends Expr {
   assert(sides > 0)
 
@@ -62,6 +76,10 @@ case class Die(sides: Int) extends Expr {
 
 }
 
-case class Mod(mod: Int) extends Expr {
-  override lazy val toPDF = Seq((mod, 1)).toPDF
+/**
+ * An [[Expr]] for a single modifier value.
+ * @param modifier The value of the modifier.
+ */
+case class Mod(modifier: Int) extends Expr {
+  override lazy val toPDF = Seq((modifier, 1)).toPDF
 }

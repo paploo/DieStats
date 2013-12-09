@@ -25,6 +25,16 @@ class PDFSeq[A, B](seq: Seq[(A, B)]) {
 object PDF {
   lazy val empty: PDF = new PDF(SortedMap.empty)
 
+  /**
+   * Given a set of key/value pairs, aggregates them and normalizes them to
+   * produce a [[PDF]].
+   *
+   * @example
+   *          {{{PDF(1->1,1->2,3->1)}}}
+   *          becomes
+   *          {{{PDF(1->0.75, 3->0.25)}}}
+   * @see [[fromSeq]]
+   */
   def apply[A, B](pairs: (A, B)*)(implicit fk: A => Int, fv: B => Double): PDF = fromSeq(pairs)
 
   //Can't do this due to type erasure.
@@ -33,6 +43,22 @@ object PDF {
   //Not actually useful.
   //def apply[A,B](map: Map[A,B])(implicit fk: A => Int, fv: B => Double): PDF = fromSeq(map.toSeq)
 
+  /**
+   * Converts the given sequence into a [[PDF]]. This sequence must be made of
+   * (A,B) pairs that can be converted to (Int, Double) pairs.
+   *
+   * The given sequence undergoes three steps of processing before made into a PDF:
+   *  - The sequence is converted into a sequence of Seq[(Int,Double)]
+   *  - The pairs are reduced to unique keys that are the sums of all the values seen for that key.
+   *  - It is normalized.
+   * @see [[apply]]
+   * @param inputSeq The input sequence of (A,B) pairs.
+   * @param fk The implicit conversion function from A => Int
+   * @param fv The implicit conversion function from B => Double
+   * @tparam A The source seq key type
+   * @tparam B The source seq value type
+   * @return A [[PDF]]
+   */
   def fromSeq[A, B](inputSeq: Seq[(A, B)])(implicit fk: A => Int, fv: B => Double): PDF = {
     val typedSeq = inputSeq.map {case (k, v) => (fk(k), fv(v))}
     val valueMap = typedSeq.groupBy(_._1).mapValues(seq => seq.map(_._2).sum)
@@ -53,6 +79,16 @@ object PDF {
   }
 }
 
+/**
+ * Encapsulates a disctere probibility density function whose domain is integers.
+ *
+ * The PDF is immutable and always normalized. This means much care must be
+ * taken when using methods such as [[take]] because the result will be
+ * normalized on you! You will often want to use [[toSeq]] to first get a non
+ * normalizable sequence.
+ *
+ * @param map A SortedMap that acts as the backing store for this [[PDF]]
+ */
 final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Double)] with IterableLike[(Int, Double), PDF] {
 
   lazy val minKey: Int = map.keys.min
@@ -95,17 +131,27 @@ final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Doub
     toSortedSet(groups(maxGroupKey).toSet)
   }
 
-  // TODO: Skip if either value is zero.
-  /*
-  * Note that without the assignment to pair, this compiles to:
-  * pdf1.flatMap { (k1,v1) => pdf2.map { case (k2,v2) => (k1,k2, v1*v2) }
-  * Which means the intermediate maps get renormalized before being combined in the flatmap phase.
-  *
+  /**
+   * Composes this PDF with another one. This is done according to the following
+   * rules:
+   * For each combination of key-value pairs from the outter product, generate a new
+   * pair whose key is the sum of the keys, and value is the product of the values.
+   * These pairs are then combined and normalized into a new [[PDF]]
+   *
+   * For example, consider two die: When you compose their PDFs (each ranging
+   * from 1 to 6), the new keys are their sums (2 to 12). For each combination
+   * of keys, we compose the probabilities by multiplying them.  We then
+   * collect up by key, adding the various probabilities found, and produce
+   * a new [[PDF]]
+   *
+   * TODO: We need to skip when either value is zero to keep the underlying Map sparse.
+   * @param other The other PDF
+   * @return A new PDF
    */
   def compose(other: PDF): PDF = for {
     (k1, v1) <- this
     (k2, v2) <- other
-    pair = (k1 + k2, v1 * v2) //This is because the renormalization causes the inter
+    pair = (k1 + k2, v1 * v2) //This is because we renormalize the inside maps before they are combined with flatMaps otherwise.
   } yield pair
 
   override def newBuilder: mutable.Builder[(Int, Double), PDF] = PDF.newBuilder

@@ -22,3 +22,7 @@ libraryDependencies ++= Seq(
 )
 
 initialCommands in console += "import net.paploo.diestats._;"
+
+scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
+
+autoAPIMappings := true

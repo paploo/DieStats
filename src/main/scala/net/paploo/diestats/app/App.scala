@@ -6,6 +6,7 @@ import net.paploo.diestats.expr.Expr._
 import net.paploo.diestats.pdf.PDFSeq._
 import net.paploo.diestats.pdf.PDFSeq
 
+/** My playground; will be replaced with actual tests. */
 object App {
 
   def main(args: Array[String]): Unit = {
@@ -15,5 +16,9 @@ object App {
     println(ex.mean)
     println(ex.median)
     println(ex.modes)
+
+    val hist = new net.paploo.diestats.pdf.Histogram[String]()
+    hist << "Alpha" << "Alpha" << "Beta"
+    hist << ("Beta" -> 3)
   }
 }
