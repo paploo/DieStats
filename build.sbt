@@ -2,9 +2,7 @@ name := "DieStats"
 
 version := "0.1.0"
 
-scalaVersion := "2.10.3"
-
-scalaHome := Some(file("/usr/local/scala"))
+scalaVersion := "2.11.0"
 
 scalacOptions ++= Seq(
   "-unchecked",
@@ -18,7 +16,7 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.scalatest" % "scalatest_2.10" % "2.0" % "test"
+  "org.scalatest" % "scalatest_2.11" % "2.1.4" % "test"
 )
 
 initialCommands in console += "import net.paploo.diestats._;"
