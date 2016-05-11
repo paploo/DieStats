@@ -8,6 +8,7 @@ import scala.collection.mutable
  * The primary methods of interest are [[<<]], [[compose]], and [[toPDF]].
  *@tparam T Any type that can be implicitly converted to an Integer later.
  */
+@deprecated("Replaced by statistics.mutable.Frequency", "0.2.0")
 class Histogram[T] extends mutable.HashMap[T, Long] {
 
   override def default(key: T) = getOrElse(key, 0)

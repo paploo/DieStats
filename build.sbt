@@ -1,22 +1,23 @@
 name := "DieStats"
 
-version := "0.1.0"
+version := "0.2.0"
 
-scalaVersion := "2.11.0"
+scalaVersion := "2.11.8"
 
 scalacOptions ++= Seq(
   "-unchecked",
   "-deprecation",
   "-Xlint",
-  "-target:jvm-1.6",
+  "-target:jvm-1.8",
   "-encoding", "UTF-8",
   "-feature",
-  "-optimise",
-  "-Yinline-warnings"
+  "-Ywarn-unused",
+  "-Ywarn-unused-import",
+  "-Ywarn-infer-any"
 )
 
 libraryDependencies ++= Seq(
-  "org.scalatest" % "scalatest_2.11" % "2.1.4" % "test"
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 )
 
 initialCommands in console += "import net.paploo.diestats._;"

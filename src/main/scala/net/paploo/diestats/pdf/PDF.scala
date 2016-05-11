@@ -8,6 +8,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 
+@deprecated("Replaced by statistics package", "0.2.0")
 object PDFSeq {
   implicit def apply[A, B](seq: Seq[(A, B)]): PDFSeq[A, B] = new PDFSeq(seq)
 
@@ -16,12 +17,14 @@ object PDFSeq {
   implicit def toSeq[A, B](pseq: PDFSeq[A, B]): Seq[(A, B)] = pseq.toSeq
 }
 
+@deprecated("Replaced by statistics package", "0.2.0")
 class PDFSeq[A, B](seq: Seq[(A, B)]) {
   def toPDF(implicit fk: A => Int, fv: B => Double) = PDF.fromSeq(seq)
 
   def toSeq = seq
 }
 
+@deprecated("Replaced by statistics.PDF", "0.2.0")
 object PDF {
   lazy val empty: PDF = new PDF(SortedMap.empty)
 
@@ -89,6 +92,7 @@ object PDF {
  *
  * @param map A SortedMap that acts as the backing store for this [[PDF]]
  */
+@deprecated("Replaced by statistics.PDF", "0.2.0")
 final class PDF private(map: SortedMap[Int, Double]) extends Iterable[(Int, Double)] with IterableLike[(Int, Double), PDF] {
 
   lazy val minKey: Int = map.keys.min
