@@ -8,6 +8,9 @@ class FrequencyBuffer[A](override val domain: Iterable[A], unknownValueHandler: 
 
   private[this] val buffer: mutable.Map[A, Long] = initializeBuffer(domain)
 
+
+  override def apply(a: A): Long = buffer(a)
+
   override def add(a: A, delta: Long): Frequency[A] = {
     if (buffer.isDefinedAt(a)) buffer(a) += delta
     else unknownValueHandler(a).map(buffer(_) += delta)

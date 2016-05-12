@@ -9,6 +9,8 @@ class AtomicFrequencyBuffer[A](override val domain: Iterable[A], unknownValueHan
 
   private[this] val buffer: mutable.Map[A, AtomicLong] = initializeBuffer(domain)
 
+  override def apply(a: A): Long = buffer(a).get
+
   override def add(a: A, delta: Long): Frequency[A] = {
     if (buffer.isDefinedAt(a)) buffer(a).addAndGet(delta)
     else unknownValueHandler(a).map(buffer(_).addAndGet(delta))

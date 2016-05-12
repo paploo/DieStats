@@ -2,15 +2,15 @@ package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.statistics.distribution.PDF
 
-trait Frequency[A] {
+trait Frequency[A] extends (A => Long) {
   def domain: Iterable[A]
 
-  def add(a: A): Frequency[A] = add(a, 1)
+  def increment(a: A): Frequency[A] = add(a, 1)
 
   def add(a: A, delta: Long): Frequency[A]
 
   def ingest(seq: Traversable[A]): Frequency[A] = {
-    seq.foreach(add)
+    seq.foreach(increment)
     this
   }
 
