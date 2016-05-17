@@ -18,13 +18,21 @@ class AtomicFrequencyBuffer[A](override val domain: Iterable[A], unknownValueHan
     this
   }
 
-  override def toPDF: PDF[A] = ???
-
   override def counts: Long = buffer.values.foldLeft(0L)(_ + _.get)
+
+  override def toPDF: PDF[A] = ???
 
   private def initializeBuffer(domain: Iterable[A]): mutable.Map[A, AtomicLong] = {
     val map = mutable.HashMap.empty[A, AtomicLong]
     domain.foreach(map(_) = new AtomicLong())
     map
   }
+}
+
+object AtomicFrequencyBuffer {
+
+  def apply[A](domain: Iterable[A]): AtomicFrequencyBuffer[A] = apply(domain, _ => None)
+
+  def apply[A](domain: Iterable[A], unknownValueHandler: A => Option[A]): AtomicFrequencyBuffer[A] = new AtomicFrequencyBuffer(domain, unknownValueHandler)
+
 }
