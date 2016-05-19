@@ -35,12 +35,12 @@ object PDF {
 
 
   /**
+    * Normalizes the given map, so that the sum of the values is 1.0.
     *
-    * @param map
-    * @param num
-    * @tparam A
-    * @tparam N
-    * @return
+    * @param num Numeric type class for values of type N
+    * @tparam A The domain element type
+    * @tparam N The numeric type
+    * @throws IllegalArgumentException if any value is negative.
     */
   private[distribution] def normalizeMap[A, N](map: Map[A, N])(implicit num: Numeric[N]): Map[A, Double] = {
     val sum = num.toDouble(map.values.sum(num))
