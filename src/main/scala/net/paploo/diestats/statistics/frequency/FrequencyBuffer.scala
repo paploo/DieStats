@@ -20,7 +20,7 @@ class FrequencyBuffer[A](override val domain: Iterable[A], unknownValueHandler: 
 
   override def counts: Long = buffer.values.sum
 
-  override def toPDF: PDF[A] = ???
+  override def toPDF: PDF[A] = PDF.fromCounts(buffer.toMap)
 
   private def initializeBuffer(domain: Iterable[A]): mutable.Map[A, Long] = {
     val map = mutable.HashMap.empty[A, Long]
