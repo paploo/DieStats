@@ -2,11 +2,11 @@ package net.paploo.diestats.statistics.distribution
 
 import net.paploo.diestats.statistics.domain.DomainOperations
 
-trait PDF[A] extends Distribution[A] {
+trait PDF[A] extends LazilyOrderedDistribution[A] {
 
   def convolve(that: PDF[A])(implicit domainOps: DomainOperations[A]): PDF[A]
 
-  def toCDF: CDF[A]
+  def toCDF(implicit ordering: Ordering[A]): CDF[A]
 
 }
 

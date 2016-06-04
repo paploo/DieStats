@@ -15,8 +15,10 @@ private[distribution] class MapPDF[A](preNormalizedMap: Map[A, Double]) extends 
 
   override def get(a: A): Option[Double] = toMap.get(a)
 
+  override lazy val domainSet: Set[A] = toMap.keys.toSet
+
   override def domain(implicit ord: Ordering[A]): Seq[A] =
-    toMap.keys.toSeq.sorted
+    domainSet.toSeq.sorted
 
   override def pairs(implicit ord: Ordering[A]): Iterable[(A, Double)] =
     toMap.toSeq.sortBy(_._1)
@@ -34,6 +36,6 @@ private[distribution] class MapPDF[A](preNormalizedMap: Map[A, Double]) extends 
     new MapPDF(reducedPairs)
   }
 
-  override def toCDF: CDF[A] = ???
+  override def toCDF(implicit ordering: Ordering[A]): CDF[A] = ???
 
 }

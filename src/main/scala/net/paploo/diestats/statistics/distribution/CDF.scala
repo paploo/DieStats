@@ -17,7 +17,7 @@ trait CDF[A] extends Distribution[A] {
 object CDF {
 
   /**
-    * Creates a CDF with the given pairs of cumulative probabilities.
+    * Creates a CDF with the given ordered set of pairs of cumulative probabilities.
     *
     * @param pairs
     * @tparam A
