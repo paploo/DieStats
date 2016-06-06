@@ -14,7 +14,7 @@ trait StrictlyOrderedDistribution[A] extends Distribution[A] {
 
   def ordering: Ordering[A]
 
-  def domain: Seq[A]
+  def domain: Seq[A] = domainSet.toSeq.sorted(ordering)
 
   def pairs: Iterable[(A, Double)]
 

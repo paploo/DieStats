@@ -11,7 +11,7 @@ object MapPDF {
 
 private[distribution] class MapPDF[A](preNormalizedMap: Map[A, Double]) extends PDF[A] {
 
-  lazy val toMap: Map[A, Double] = preNormalizedMap
+  val toMap: Map[A, Double] = preNormalizedMap
 
   override def get(a: A): Option[Double] = toMap.get(a)
 
