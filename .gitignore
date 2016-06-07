@@ -18,3 +18,6 @@ target
 
 # MacOS X
 .DS_Store
+
+# Misc
+LOCAL.md
