@@ -1,6 +1,6 @@
-package net.paploo.diestats.statistics.distribution
+package net.paploo.diestats.statisticsold.distribution
 
-import net.paploo.diestats.statistics.domain.DomainOperations
+import net.paploo.diestats.statisticsold.domain.DomainOperations
 import net.paploo.diestats.test.SpecTest
 
 class MapPDFTest extends SpecTest {
