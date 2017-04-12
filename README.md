@@ -5,8 +5,9 @@
 
 This library will focus on producing several main pieces:
 
-1. Structures for building and modeling die expressions, and
-2. A net.paploo.diestats.statistics package focused around probability distribution functions.
+1. A statistics package focused around probability distribution function combinatorics,
+2. An Die Expression Tree that can be evaluated to generate PDFs, CDFs, or values.
+3. 
 
 ## History
 
@@ -33,3 +34,5 @@ Some notes:
   (One way is to have the domain typeclass know about ordering, and have it have
    an "identity" ordering by default, which does nothing.)
 * Need frequency buffers which allow fast, mutable accumulation.
+* PDFs can be used to generate random values, but we might want to typeclass our
+  random number generator so that we can have different implementations.

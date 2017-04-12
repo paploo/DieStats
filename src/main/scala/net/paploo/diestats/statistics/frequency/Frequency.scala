@@ -5,13 +5,38 @@ import net.paploo.diestats.statistics.pdf.PDFAble
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
-   * @tparam A The domain type.
+  * @tparam A The domain type.
   */
 trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFAble[A] {
 
+  /**
+    * Returns a new Frequency with the given count added to the pair.
+    * @param pair
+    * @return
+    */
   def +(pair: (A, Long)): Frequency[A]
 
-  def ++(that: Frequency[A])
+  /**
+    * Returns a new Frequency with the given frequencies added in.
+    * @param pairs
+    */
+  def ++(pairs: Traversable[(A, Long)]): Frequency[A]
+
+  /**
+    * Give the sum total of counts across the domains.
+    * @return
+    */
+  def count: Long
+
+}
+
+object Frequency {
+
+  def empty[A]: Frequency[A] = FrequencyMap.empty
+
+  def apply[A](): Frequency[A] = empty
+
+  def apply[A](pairs: Traversable[(A, Long)]): Frequency[A] = FrequencyMap(pairs)
 
 }
 

@@ -2,7 +2,7 @@ package net.paploo.diestats.statistics.cdf
 
 import net.paploo.diestats.statistics.Probability
 import net.paploo.diestats.statistics.distribution.Distribution
-import net.paploo.diestats.statistics.pdf.{PDF, PDFAble}
+import net.paploo.diestats.statistics.pdf.PDFAble
 
 /**
   * Cumulative distribution function over a domain A.

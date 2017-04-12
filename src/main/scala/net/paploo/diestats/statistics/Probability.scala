@@ -4,9 +4,6 @@ package net.paploo.diestats.statistics
   * Value wrapper class for probabilities.
   */
 class Probability(val toDouble: Double) extends AnyVal {
-  require(toDouble >= 0.0, "Probabilities must be positive in value.")
-  require(toDouble <= 1.0, "Probabilities must be less than one.")
-
   def +(that: Probability): Probability = Probability(this.toDouble + that.toDouble)
   def *(that: Probability): Probability = Probability(this.toDouble * that.toDouble)
 
@@ -19,7 +16,12 @@ object Probability {
 
   val one: Probability = apply(1.0)
 
-  def apply(p: Double): Probability = new Probability(p)
+  def apply(p: Double): Probability = {
+    // Have to enforce constraints here, because value classes can't do it in the class itself.
+    require(p >= 0.0, "Probabilities must be positive in value.")
+    require(p <= 1.0, "Probabilities must be less than one.")
+    new Probability(p)
+  }
 
   def unapply(prob: Probability): Option[Double] = Some(prob.toDouble)
 

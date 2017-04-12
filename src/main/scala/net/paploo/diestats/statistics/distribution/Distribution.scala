@@ -8,7 +8,7 @@ import net.paploo.diestats.statistics.domain.DomainOps
   * @tparam A The domain type.
   * @tparam B The value for an input from the domain.
   */
-trait Distribution[A, B] extends PartialFunction[A, B] {
+trait Distribution[A, B] extends PartialFunction[A, B] with Traversable[(A, B)] {
 
   override def apply(a: A): B = get(a).getOrElse(throw new NoSuchElementException(s"Value undefined for domain value $a"))
 
@@ -16,8 +16,14 @@ trait Distribution[A, B] extends PartialFunction[A, B] {
 
   def get(a: A): Option[B]
 
-  def domain(implicit dops: DomainOps[A]): Seq[A]
+  /**
+    * Gets the domain list, sorted according to DomainOps.
+    */
+  def domain(implicit dops: DomainOps[A]): Seq[A] = this.map(_._1).toSeq.sorted(dops.ordering)
 
-  def pairs(implicit dops: DomainOps[A]): Seq[(A, B)]
+  /**
+    * Gets the pairs, sorted according to DomainOps.
+    */
+  def pairs(implicit dops: DomainOps[A]): Seq[(A, B)] = this.toSeq.sortBy(_._1)(dops.ordering)
 
 }
