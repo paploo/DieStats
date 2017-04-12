@@ -35,10 +35,12 @@ object OrderingSupport {
       }
   }
 
-  object Implicits {
+  trait Implicits {
 
     implicit def setOrdering[A](implicit ord: Ordering[A]): Ordering[Set[A]] = OrderingSupport.setOrdering
 
   }
+
+  object Implicits extends Implicits
 
 }
