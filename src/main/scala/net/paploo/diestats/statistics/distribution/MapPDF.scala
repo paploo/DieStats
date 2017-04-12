@@ -27,7 +27,7 @@ private[distribution] class MapPDF[A](preNormalizedMap: Map[A, Double]) extends 
     val rawPairs = for {
       x <- this.domain(OrderingSupport.nullOrdering)
       y <- that.domain(OrderingSupport.nullOrdering)
-    } yield (domainOps.add(x,y), this(x)*that(y))
+    } yield (domainOps.concat(x, y), this(x) * that(y))
 
     val reducedPairs = rawPairs.groupBy(_._1).map {
       case (k,v) => k -> v.foldLeft(0.0)(_ + _._2)

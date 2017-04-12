@@ -10,8 +10,6 @@ class MapPDFTest extends SpecTest {
   val expectedDomain = Seq(1, 3)
   val pexpectedPairs = Seq((1, 0.25), (3, 0.75))
 
-  val ε = 1e-12
-
   describe("creation from counts") {
 
     val pdf = PDF.fromCounts(Map(1 -> 100L, 2 -> 200L, 3 -> 300L))
@@ -85,10 +83,7 @@ class MapPDFTest extends SpecTest {
 
     it("should convolve with an alternate domainOp") {
       val domainOp = new DomainOperations[Int] {
-        override def add(x: Int, y: Int): Int = x * y
-        override def span(domainA: Seq[Int], domainB: Seq[Int])(implicit ord: Ordering[Int]): Seq[Int] = ???
-        override def sub(x: Int, y: Int): Int = ???
-        override def fill(domain: Seq[Int])(implicit ord: Ordering[Int]): Seq[Int] = ???
+        override def concat(x: Int, y: Int): Int = x * y
       }
 
       val expectedPdf = MapPDF(Map(1 -> 0.0625, 3 -> 0.1875, 5 -> 0.1875, 15 -> 0.5625))
