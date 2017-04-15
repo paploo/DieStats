@@ -1,8 +1,11 @@
 package net.paploo.diestats.statistics.domain
 
+import scala.annotation.implicitNotFound
+
 /**
   * A typeclass for defining a domain over A.
   */
+@implicitNotFound(msg = "Cannot find an implicit DomainOps[${A}].")
 trait DomainOps[A] {
 
   /**

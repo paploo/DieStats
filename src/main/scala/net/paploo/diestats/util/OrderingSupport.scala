@@ -42,12 +42,12 @@ object OrderingSupport {
   }
 
   object SetOrdering {
-    def apply[A]()(implicit ord: Ordering[A]): Ordering[Set[A]] = new SetOrdering
+    def apply[A]()(implicit ord: Ordering[A]): Ordering[Set[A]] = new SetOrdering[A]
   }
 
 
   trait Implicits {
-    implicit def setOrdering[A](implicit ord: Ordering[A]): Ordering[Set[A]] = new SetOrdering
+    implicit def setOrdering[A](implicit ord: Ordering[A]): Ordering[Set[A]] = new SetOrdering[A]
   }
 
   object Implicits extends Implicits

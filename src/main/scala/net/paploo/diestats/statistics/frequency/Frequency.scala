@@ -1,17 +1,16 @@
 package net.paploo.diestats.statistics.frequency
 
-import net.paploo.diestats.statistics.distribution.Distribution
-import net.paploo.diestats.statistics.distribution.Distribution.FrequencyPair
-import net.paploo.diestats.statistics.pdf.PDFAble
-import net.paploo.diestats.util.TraversableSupport
+import net.paploo.diestats.statistics.Probability
+import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution}
+import net.paploo.diestats.statistics.pdf.{PDF, PDFAble}
 
-import scala.collection.{TraversableLike, mutable}
+import scala.language.implicitConversions
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
   * @tparam A The domain type.
   */
-trait Frequency[A] extends Distribution[A, Long] with TraversableLike[A, Frequency[A]] with Frequenciable[A] with PDFAble[A] {
+trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFAble[A] {
 
   /**
     * Returns a new Frequency with the given count added to the pair.
@@ -24,7 +23,7 @@ trait Frequency[A] extends Distribution[A, Long] with TraversableLike[A, Frequen
     * Returns a new Frequency with the given frequencies added in.
     * @param pairs
     */
-  def ++(pairs: Traversable[(A, Long)]): Frequency[A]
+  def ++(pairs: TraversableOnce[(A, Long)]): Frequency[A]
 
   /**
     * Give the sum total of counts across the domains.
@@ -32,18 +31,28 @@ trait Frequency[A] extends Distribution[A, Long] with TraversableLike[A, Frequen
     */
   def count: Long
 
-  //override protected[this] def newBuilder: mutable.Builder[(A, Long), Traversable[(A, Long)]] = Frequency.builder
+  override def toFrequency: Frequency[A] = this
+
+  override def toPDF: PDF[A] = {
+    val sum = this.count.toDouble
+    val pairs = this.toMap.mapValues(m => Probability(m.toDouble / sum))
+    PDF.buildFrom(pairs)
+  }
+
 }
 
-object Frequency {
+object Frequency extends ConcreteDistributionCompanion[Long, Frequency] {
 
-  def empty[A]: Frequency[A] = FrequencyMap.empty
+  override def empty[A]: Frequency[A] = FrequencyMap.empty
 
-  def apply[A](): Frequency[A] = empty
+  override def buildFrom[A](pairs: TraversableOnce[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(pairs)
 
-  def apply[A](pairs: Traversable[(FrequencyPair[A]]): Frequency[A] = FrequencyMap(pairs)
+  trait Implicits {
+    implicit def frequencyToTraversable[A](frequency: Frequency[A]): Traversable[(A, Long)] = frequency.toSeq
+    implicit def traversableToFrequency[A](traversable: TraversableOnce[(A, Long)]): Frequency[A] = Frequency.buildFrom(traversable)
+  }
 
-  //def newBuilder[A]: mutable.Builder[FrequencyPair[A], Traversable[FrequencyPair[A]]] = TraversableSupport.SequenceBufferBuilder.apply[FrequencyPair[A], Frequency[A]](Frequency.apply)
+  object Implicits extends Implicits
 
 }
 

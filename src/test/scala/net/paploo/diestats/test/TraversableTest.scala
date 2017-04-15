@@ -84,6 +84,8 @@ class TraversableTest extends SpecTest {
 
 object Coll {
 
+  //TODO: http://daily-scala.blogspot.com/2010/04/creating-custom-traversable.html
+
   //Foo implements all the pieces manually.
 
   class Foo[A](values: Seq[A]) extends Traversable[A] with TraversableLike[A, Foo[A]] {
