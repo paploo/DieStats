@@ -1,13 +1,17 @@
 package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.statistics.distribution.Distribution
+import net.paploo.diestats.statistics.distribution.Distribution.FrequencyPair
 import net.paploo.diestats.statistics.pdf.PDFAble
+import net.paploo.diestats.util.TraversableSupport
+
+import scala.collection.{TraversableLike, mutable}
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
   * @tparam A The domain type.
   */
-trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFAble[A] {
+trait Frequency[A] extends Distribution[A, Long] with TraversableLike[A, Frequency[A]] with Frequenciable[A] with PDFAble[A] {
 
   /**
     * Returns a new Frequency with the given count added to the pair.
@@ -28,6 +32,7 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFA
     */
   def count: Long
 
+  //override protected[this] def newBuilder: mutable.Builder[(A, Long), Traversable[(A, Long)]] = Frequency.builder
 }
 
 object Frequency {
@@ -36,7 +41,9 @@ object Frequency {
 
   def apply[A](): Frequency[A] = empty
 
-  def apply[A](pairs: Traversable[(A, Long)]): Frequency[A] = FrequencyMap(pairs)
+  def apply[A](pairs: Traversable[(FrequencyPair[A]]): Frequency[A] = FrequencyMap(pairs)
+
+  //def newBuilder[A]: mutable.Builder[FrequencyPair[A], Traversable[FrequencyPair[A]]] = TraversableSupport.SequenceBufferBuilder.apply[FrequencyPair[A], Frequency[A]](Frequency.apply)
 
 }
 

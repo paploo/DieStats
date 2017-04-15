@@ -1,5 +1,6 @@
 package net.paploo.diestats.statistics.distribution
 
+import net.paploo.diestats.statistics.Probability
 import net.paploo.diestats.statistics.domain.DomainOps
 
 /**
@@ -25,5 +26,18 @@ trait Distribution[A, B] extends PartialFunction[A, B] with Traversable[(A, B)] 
     * Gets the pairs, sorted according to DomainOps.
     */
   def pairs(implicit dops: DomainOps[A]): Seq[(A, B)] = this.toSeq.sortBy(_._1)(dops.ordering)
+
+  /**
+    * Returns the frequency as a simple Map[A, B]
+    */
+  def toMap: Map[A, B]
+
+}
+
+object Distribution {
+
+  type FrequencyPair[A] = (A, Long)
+
+  type ProbabilityPair[A] = (A, Probability)
 
 }

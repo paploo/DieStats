@@ -11,6 +11,8 @@ class FrequencyMap[A](frequencies: Map[A, Long]) extends Frequency[A] {
 
   lazy val count: Long = frequencies.values.sum
 
+  override def toMap: Map[A, Long] = frequencies
+
   override def toFrequency: Frequency[A] = this
 
   override def toPDF: PDF[A] = ???

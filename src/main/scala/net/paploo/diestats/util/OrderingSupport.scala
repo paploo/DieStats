@@ -6,8 +6,12 @@ object OrderingSupport {
     * The null ordering is useful for when no ordering needs to take place, such as during
     * convolution over the domains.
     */
-  def nullOrdering[A]: Ordering[A] = new Ordering[A] {
+  class NullOrdering[A] extends Ordering[A] {
     override def compare(x: A, y: A): Int = 0
+  }
+
+  object NullOrdering {
+    def apply[A](): NullOrdering[A] = new NullOrdering
   }
 
   /**
@@ -20,7 +24,8 @@ object OrderingSupport {
     *
     * @param ord The ordering of the set elements
     */
-  implicit def setOrdering[A](implicit ord: Ordering[A]): Ordering[Set[A]] = new Ordering[Set[A]] {
+  class SetOrdering[A](implicit ord: Ordering[A]) extends Ordering[Set[A]] {
+
     override def compare(x: Set[A], y: Set[A]): Int =
       if (x == y) 0
       else if (x.size != y.size) y.size - x.size
@@ -33,12 +38,16 @@ object OrderingSupport {
           ord.compare(sortedX(i), sortedY(i))
         }.get
       }
+
   }
 
+  object SetOrdering {
+    def apply[A]()(implicit ord: Ordering[A]): Ordering[Set[A]] = new SetOrdering
+  }
+
+
   trait Implicits {
-
-    implicit def setOrdering[A](implicit ord: Ordering[A]): Ordering[Set[A]] = OrderingSupport.setOrdering
-
+    implicit def setOrdering[A](implicit ord: Ordering[A]): Ordering[Set[A]] = new SetOrdering
   }
 
   object Implicits extends Implicits

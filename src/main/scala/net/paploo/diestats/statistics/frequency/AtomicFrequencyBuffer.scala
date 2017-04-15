@@ -41,6 +41,8 @@ class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
 
   override def copy: FrequencyBuffer[A] = FrequencyBuffer(this)
 
+  override def toMap: Map[A, Long] = toFrequency.toMap
+
   /**
     * Returns an immutable copy of this frequency buffer.
     */
