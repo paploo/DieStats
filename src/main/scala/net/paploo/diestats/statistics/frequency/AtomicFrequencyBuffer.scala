@@ -18,14 +18,14 @@ class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
     this
   }
 
-  override def ++=(pairs: TraversableOnce[(A, Long)]): FrequencyBuffer[A] = {
+  override def ++=(pairs: Iterable[(A, Long)]): FrequencyBuffer[A] = {
     pairs.foreach(pair => this += pair)
     this
   }
 
   override def +(pair: (A, Long)): Frequency[A] = toFrequency + pair
 
-  override def ++(pairs: TraversableOnce[(A, Long)]): Frequency[A] = toFrequency ++ pairs
+  override def ++(pairs: Iterable[(A, Long)]): Frequency[A] = toFrequency ++ pairs
 
   override def count: Long = frequencies.values.foldLeft(0L)(_.longValue + _.longValue)
 
@@ -55,7 +55,7 @@ object AtomicFrequencyBuffer extends ConcreteDistributionCompanion[Long, AtomicF
 
   override def empty[A]: AtomicFrequencyBuffer[A] = new AtomicFrequencyBuffer[A]()
 
-  override def buildFrom[A](pairs: TraversableOnce[(A, Long)]): AtomicFrequencyBuffer[A] = {
+  override def buildFrom[A](pairs: Iterable[(A, Long)]): AtomicFrequencyBuffer[A] = {
     val buf = empty[A]
     buf ++= pairs
     buf

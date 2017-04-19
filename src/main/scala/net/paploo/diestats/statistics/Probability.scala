@@ -30,13 +30,13 @@ object Probability {
 
 //  def unapply(prob: Probability): Option[Double] = Some(prob.toDouble)
 
-  def normalizeValues[N](seq: TraversableOnce[N])(implicit num: Numeric[N]): Seq[Probability] = {
+  def normalizeValues[N](seq: Iterable[N])(implicit num: Numeric[N]): Seq[Probability] = {
     val sumN: N = seq.foldLeft(num.zero)(num.plus)
     val sum: Double = num.toDouble(sumN)
     seq.map(n => Probability(num.toDouble(n) / sum)).toSeq
   }
 
-  def normalizePairs[A, N](seq: TraversableOnce[(A, N)])(implicit num: Numeric[N]): Seq[(A, Probability)] = {
+  def normalizePairs[A, N](seq: Iterable[(A, N)])(implicit num: Numeric[N]): Seq[(A, Probability)] = {
     val sumN: N = seq.foldLeft(num.zero){ case (s, (a,p)) => num.plus(s, p) }
     val sum: Double = num.toDouble(sumN)
     seq.map(pair => pair._1 -> Probability(num.toDouble(pair._2) / sum)).toSeq

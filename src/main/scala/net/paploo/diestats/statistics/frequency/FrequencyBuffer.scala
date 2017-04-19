@@ -11,7 +11,7 @@ trait FrequencyBuffer[A] extends Frequency[A] {
 
   def +=(pair: (A, Long)): FrequencyBuffer[A]
 
-  def ++=(pairs: TraversableOnce[(A, Long)]): FrequencyBuffer[A]
+  def ++=(pairs: Iterable[(A, Long)]): FrequencyBuffer[A]
 
   def copy: FrequencyBuffer[A]
 
@@ -21,6 +21,6 @@ object FrequencyBuffer extends ConcreteDistributionCompanion[Long, FrequencyBuff
 
   override def empty[A]: FrequencyBuffer[A] = AtomicFrequencyBuffer.empty[A]
 
-  override def buildFrom[A](pairs: TraversableOnce[(A, Long)]): FrequencyBuffer[A] = empty ++= pairs
+  override def buildFrom[A](pairs: Iterable[(A, Long)]): FrequencyBuffer[A] = empty ++= pairs
 
 }

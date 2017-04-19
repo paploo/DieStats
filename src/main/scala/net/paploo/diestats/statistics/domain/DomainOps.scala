@@ -48,7 +48,7 @@ object DomainOps {
     override def empty: A = num.zero
 
     override def compare(x: A, y: A): Int = num.compare(x, y)
-
+  }
 
   class UnorderedSeqDomainOps[A](implicit val ordering: Ordering[A]) extends DomainOps[Seq[A]] {
     override def concat(x: Seq[A], y: Seq[A]): Seq[A] = x ++ y
@@ -73,7 +73,7 @@ object DomainOps {
       }
 
       // If we got here, they were the same up until one ran out of elements, so it just comes down to size.
-      return as.length - bs.length
+      as.length - bs.length
     }
   }
 

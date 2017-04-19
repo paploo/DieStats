@@ -5,7 +5,7 @@ class FrequencyMap[A](frequencies: Map[A, Long]) extends Frequency[A] {
 
   override def +(pair: (A, Long)): Frequency[A] = FrequencyMap.buildFrom(frequencies + pair)
 
-  override def ++(pairs: TraversableOnce[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(frequencies ++ pairs)
+  override def ++(pairs: Iterable[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(frequencies ++ pairs)
 
   override def get(a: A): Option[Long] = frequencies.get(a)
 
@@ -19,6 +19,6 @@ object FrequencyMap extends ConcreteDistributionCompanion[Long, FrequencyMap] {
 
   override def empty[A]: FrequencyMap[A] = new FrequencyMap(Map.empty)
 
-  override def buildFrom[A](pairs: TraversableOnce[(A, Long)]): FrequencyMap[A] = new FrequencyMap(pairs.toMap)
+  override def buildFrom[A](pairs: Iterable[(A, Long)]): FrequencyMap[A] = new FrequencyMap(pairs.toMap)
 
 }

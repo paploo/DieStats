@@ -23,7 +23,7 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFA
     * Returns a new Frequency with the given frequencies added in.
     * @param pairs
     */
-  def ++(pairs: TraversableOnce[(A, Long)]): Frequency[A]
+  def ++(pairs: Iterable[(A, Long)]): Frequency[A]
 
   /**
     * Give the sum total of counts across the domains.
@@ -45,11 +45,11 @@ object Frequency extends ConcreteDistributionCompanion[Long, Frequency] {
 
   override def empty[A]: Frequency[A] = FrequencyMap.empty
 
-  override def buildFrom[A](pairs: TraversableOnce[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(pairs)
+  override def buildFrom[A](pairs: Iterable[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(pairs)
 
   trait Implicits {
-    implicit def frequencyToTraversable[A](frequency: Frequency[A]): Traversable[(A, Long)] = frequency.toSeq
-    implicit def traversableToFrequency[A](traversable: TraversableOnce[(A, Long)]): Frequency[A] = Frequency.buildFrom(traversable)
+    implicit def frequencyToTraversable[A](frequency: Frequency[A]): Iterable[(A, Long)] = frequency.toSeq
+    implicit def traversableToFrequency[A](traversable: Iterable[(A, Long)]): Frequency[A] = Frequency.buildFrom(traversable)
   }
 
   object Implicits extends Implicits

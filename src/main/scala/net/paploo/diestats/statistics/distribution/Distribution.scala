@@ -49,6 +49,6 @@ trait ConcreteDistributionCompanion[B, Repr[_]] {
 
   def apply[A](pairs: (A, B)*): Repr[A] = buildFrom(pairs)
 
-  def buildFrom[A](pairs: TraversableOnce[(A, B)]): Repr[A]
+  def buildFrom[A](pairs: Iterable[(A, B)]): Repr[A]
 
 }
