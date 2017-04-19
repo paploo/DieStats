@@ -1,16 +1,33 @@
 package net.paploo.diestats.statistics.cdf
 
+import net.paploo.diestats.statistics.Probability
 import net.paploo.diestats.statistics.distribution.ProbabilityDistribution
+import net.paploo.diestats.statistics.domain.DomainOps
 import net.paploo.diestats.statistics.pdf.PDFAble
 
 /**
   * Cumulative distribution function over a domain A.
+  *
+  * CDFs have an implied domain ordering
+  *
   * @tparam A The domain type.
   */
 trait CDF[A] extends ProbabilityDistribution[A] with CDFable[A] with PDFAble[A] {
 
-  // TODO: Think about the domain requirements!
-  // CDF's need a predictably ordered domain, so that we know how to integrate from a PDF.
+  /**
+    * While a PDF has no domain ordering, PDFs represent an integration, which requires a definitive ordering.
+    */
+  def domainOrdering: Ordering[A]
+
+  /**
+    * Gets the domain list, sorted according to the CDF's ordering.
+    */
+  def domain: Seq[A] = domain(domainOrdering)
+
+  /**
+    * Gets the pairs, sorted according to the CDF's ordering.
+    */
+  def pairs: Seq[(A, Probability)] = pairs(domainOrdering)
 
   def randomValue(implicit rand: RandomNumberGenerator): Double
 
@@ -25,6 +42,6 @@ trait CDF[A] extends ProbabilityDistribution[A] with CDFable[A] with PDFAble[A] 
   */
 trait CDFable[A] {
 
-  def toCDF: CDF[A]
+  def toCDF(dops: DomainOps[A]): CDF[A]
 
 }

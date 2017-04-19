@@ -2,7 +2,6 @@ package net.paploo.diestats.statistics.frequency
 import java.util.concurrent.atomic.AtomicLong
 
 import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
-import net.paploo.diestats.statistics.domain.DomainOps
 
 import scala.collection.mutable
 
@@ -32,7 +31,7 @@ class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
 
   override def get(a: A): Option[Long] = frequencies.get(a).map(_.longValue)
 
-  override def domain(implicit dops: DomainOps[A]): Seq[A] = frequencies.keys.toSeq.sorted(dops.ordering)
+  override def domain(implicit ord: Ordering[A]): Seq[A] = frequencies.keys.toSeq.sorted(ord)
 
   override def copy: FrequencyBuffer[A] = AtomicFrequencyBuffer.buildFrom(this.toMap)
 
@@ -47,14 +46,7 @@ class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
     * Get the counter, creating it if necessary, in a thread safe way.
     */
   private[this] def getCounter(a: A): AtomicLong = this.synchronized {
-    frequencies.get(a) match {
-      case Some(counter) =>
-          counter
-      case None =>
-          val counter = new AtomicLong(0L)
-          frequencies += a -> new AtomicLong(0L)
-          counter
-    }
+    frequencies.getOrElseUpdate(a, new AtomicLong(0L))
   }
 
 }

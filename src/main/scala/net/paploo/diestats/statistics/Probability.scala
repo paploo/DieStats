@@ -3,16 +3,21 @@ package net.paploo.diestats.statistics
 import scala.language.implicitConversions
 
 /**
-  * Value wrapper class for probabilities.
+  * Wrapper class for Probabilities.
+  *
+  * This would be an AnyVal value class, however its special range constraints
+  * no longer make it a straight replacement.
   */
-class Probability(val toDouble: Double) extends AnyVal {
+case class Probability(toDouble: Double) {
+  require(toDouble >= 0.0 && toDouble <= 1.0, s"Probabilities must be in range [0,1], but got $toDouble")
+
   def +(that: Probability): Probability = Probability(this.toDouble + that.toDouble)
   def *(that: Probability): Probability = Probability(this.toDouble * that.toDouble)
 
   def -(that: Probability): Probability = Probability(this.toDouble - that.toDouble)
   def /(that: Probability): Probability = Probability(this.toDouble / that.toDouble)
 
-  def unary_- = Probability(-this.toDouble)
+  def unary_- = Probability(-this.toDouble) //Obviously, this will crash, but we endeavour to be DRY on constraints.
 
   def compliment: Probability = Probability(1.0 - this.toDouble)
 }
@@ -23,14 +28,7 @@ object Probability {
 
   val one: Probability = apply(1.0)
 
-  def apply(p: Double): Probability = {
-    // Have to enforce constraints here, because value classes can't do it in the class itself.
-    require(p >= 0.0, s"Probabilities must be positive in value for $p.")
-    require(p <= 1.0, s"Probabilities must be less than one, but got $p.")
-    new Probability(p)
-  }
-
-  def unapply(prob: Probability): Option[Double] = Some(prob.toDouble)
+//  def unapply(prob: Probability): Option[Double] = Some(prob.toDouble)
 
   def normalizeValues[N](seq: TraversableOnce[N])(implicit num: Numeric[N]): Seq[Probability] = {
     val sumN: N = seq.foldLeft(num.zero)(num.plus)

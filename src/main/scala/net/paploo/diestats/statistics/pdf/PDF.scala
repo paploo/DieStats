@@ -5,12 +5,16 @@ import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanio
 import net.paploo.diestats.statistics.domain.DomainOps
 import net.paploo.diestats.statistics.Implicits._
 
+import scala.collection.mutable
+
 /**
   * Probabilitiy Distribution Function
   */
 trait PDF[A] extends ProbabilityDistribution[A] {
 
-  def convolve(that: PDF[A])(implicit dops: DomainOps[A]): PDF[A]
+  def convolve(that: PDF[A])(implicit dops: DomainOps[A]): PDF[A] = {
+
+  }
 
 }
 
@@ -34,6 +38,36 @@ object PDF extends ConcreteDistributionCompanion[Probability, PDF] {
     * Visibility is kept to within the statistics package, where we can trust the input is pre-normalized.
     */
   private[statistics] def buildFromNormalized[A](pairs: TraversableOnce[(A, Probability)]): PDF[A] = ???
+
+  //def convolve[A, B](a: PDF[A], b: PDF[A])(f: Map[A, Probability] => B)
+
+  def convolveFunctional[A](xs: Seq[(A, Probability)], ys: Seq[(A, Probability)])(implicit dops: DomainOps[A]): Map[A, Probability] = {
+    // First, we combine the pairs.
+    val combinedPairs = for {
+      (xa, xp) <- xs
+      (ya, yp) <- ys
+    } yield (dops.concat(xa, ya), xp * yp)
+
+    //Now, we flatten together.
+    val flattenedPairs = combinedPairs.groupBy(_._1).map {
+      case (a, pairs) => a -> pairs.foldLeft(Probability.zero)(_ + _._2)
+    }
+
+    flattenedPairs
+  }
+
+  def convolveMutable[A](xs: Seq[(A, Probability)], ys: Seq[(A, Probability)])(implicit dops: DomainOps[A]): Map[A, Probability] = {
+    val buffer = mutable.Map.empty[A, Probability]
+    for {
+      (xa, xp) <- xs
+      (ya, yp) <- ys
+    } {
+      val key = dops.concat(xa, ya)
+      val value = buffer.getOrElseUpdate(key, Probability.zero) + (xp * yp)
+      buffer += key -> value
+    }
+    buffer.toMap
+  }
 
 }
 

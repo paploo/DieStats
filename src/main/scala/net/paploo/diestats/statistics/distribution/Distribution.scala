@@ -1,7 +1,5 @@
 package net.paploo.diestats.statistics.distribution
 
-import net.paploo.diestats.statistics.domain.DomainOps
-
 import scala.language.higherKinds
 
 /**
@@ -21,12 +19,12 @@ trait Distribution[A, +B] extends PartialFunction[A, B] {
   /**
     * Gets the domain list, sorted according to DomainOps.
     */
-  def domain(implicit dops: DomainOps[A]): Seq[A] = this.toMap.keys.toSeq.sorted(dops.ordering)
+  def domain(implicit ord: Ordering[A]): Seq[A] = this.toMap.keys.toSeq.sorted(ord)
 
   /**
     * Gets the pairs, sorted according to DomainOps.
     */
-  def pairs(implicit dops: DomainOps[A]): Seq[(A, B)] = this.toMap.toSeq.sortBy(_._1)(dops.ordering)
+  def pairs(implicit ord: Ordering[A]): Seq[(A, B)] = this.toMap.toSeq.sortBy(_._1)(ord)
 
   /**
     * Returns the distribution as a simple Map[A, B]
