@@ -4,21 +4,41 @@ import net.paploo.diestats.statistics.Probability
 import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, ProbabilityDistribution}
 import net.paploo.diestats.statistics.domain.DomainOps
 import net.paploo.diestats.statistics.Implicits._
+import net.paploo.diestats.statistics.cdf.CDFAble
+import net.paploo.diestats.statistics.frequency.Frequency
 
 import scala.collection.mutable
 
 /**
   * Probabilitiy Distribution Function
   */
-trait PDF[A] extends ProbabilityDistribution[A] {
+trait PDF[A] extends ProbabilityDistribution[A] with PDFAble[A] with CDFAble[A] {
 
-  def convolve(that: PDF[A])(implicit dops: DomainOps[A]): PDF[A]
+  def convolve(that: PDF[A])(implicit dops: DomainOps[A]): PDF[A] = {
+    // For both better memory usage and speed, use mutable.Map as a buffer, and then make immutable.
+    val buffer = mutable.Map.empty[A, Probability]
+    for {
+      (xa, xp) <- this.toSeq
+      (ya, yp) <- that.toSeq
+    } {
+      val key = dops.concat(xa, ya)
+      val value = buffer.getOrElseUpdate(key, Probability.zero) + (xp * yp)
+      buffer += key -> value
+    }
+    PDF.buildFromNormalized(buffer) //Note: This is technically mutable, but we return as an immutable interface; we could use toMap to be safer, but then we'd be making an unecesssary copy to enforce immutability.
+  }
 
 }
 
 object PDF extends ConcreteDistributionCompanion[Probability, PDF] {
 
-  override def empty[A]: PDF[A] = ???
+  override def empty[A]: PDF[A] = PDFMap.empty
+
+  def apply[A](freq: Frequency[A]): PDF[A] = {
+    val sum = freq.count.toDouble
+    val pairs = freq.toMap.mapValues(m => Probability(m.toDouble / sum))
+    PDF.buildFrom(pairs)
+  }
 
   /**
     * Given the pairs, create a PDF.
@@ -27,45 +47,18 @@ object PDF extends ConcreteDistributionCompanion[Probability, PDF] {
     */
   override def buildFrom[A](pairs: Iterable[(A, Probability)]): PDF[A] = {
     val normalizedPairs = Probability.normalizePairs(pairs)
-    ???
+    PDFMap.buildFrom(normalizedPairs)
   }
 
   /**
-    * Create a PDF from pre-normalized pairs.
+    * Create a PDF from guaranteed pre-normalized pairs, skipping any validation of normalization.
     *
-    * Visibility is kept to within the statistics package, where we can trust the input is pre-normalized.
+    * This is used with caution, to get performance increases in cases where we know we can trust the source.
+    *
+    * Visibility is kept to within the statistics package, where we can trust the caller has pre-normalized.
     */
-  private[statistics] def buildFromNormalized[A](pairs: Iterable[(A, Probability)]): PDF[A] = ???
-
-  //def convolve[A, B](a: PDF[A], b: PDF[A])(f: Map[A, Probability] => B)
-
-  def convolveFunctional[A](xs: Seq[(A, Probability)], ys: Seq[(A, Probability)])(implicit dops: DomainOps[A]): Map[A, Probability] = {
-    // First, we combine the pairs.
-    val combinedPairs = for {
-      (xa, xp) <- xs
-      (ya, yp) <- ys
-    } yield (dops.concat(xa, ya), xp * yp)
-
-    //Now, we flatten together.
-    val flattenedPairs = combinedPairs.groupBy(_._1).map {
-      case (a, pairs) => a -> pairs.foldLeft(Probability.zero)(_ + _._2)
-    }
-
-    flattenedPairs
-  }
-
-  def convolveMutable[A](xs: Seq[(A, Probability)], ys: Seq[(A, Probability)])(implicit dops: DomainOps[A]): Map[A, Probability] = {
-    val buffer = mutable.Map.empty[A, Probability]
-    for {
-      (xa, xp) <- xs
-      (ya, yp) <- ys
-    } {
-      val key = dops.concat(xa, ya)
-      val value = buffer.getOrElseUpdate(key, Probability.zero) + (xp * yp)
-      buffer += key -> value
-    }
-    buffer.toMap
-  }
+  private[pdf] def buildFromNormalized[A](pairs: Iterable[(A, Probability)]): PDF[A] =
+    PDFMap.buildFromNormalized(pairs)
 
 }
 

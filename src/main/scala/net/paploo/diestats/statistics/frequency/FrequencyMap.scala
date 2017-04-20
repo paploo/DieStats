@@ -1,7 +1,12 @@
 package net.paploo.diestats.statistics.frequency
 import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
 
-class FrequencyMap[A](frequencies: Map[A, Long]) extends Frequency[A] {
+/**
+  * Imutable implementation of frequency, build around immutable Map.
+  * @param frequencies The set of frequencies.
+  * @tparam A The domain type.
+  */
+private[frequency] final class FrequencyMap[A](frequencies: Map[A, Long]) extends Frequency[A] {
 
   override def +(pair: (A, Long)): Frequency[A] = FrequencyMap.buildFrom(frequencies + pair)
 

@@ -1,8 +1,8 @@
 package net.paploo.diestats.statistics.frequency
 
-import net.paploo.diestats.statistics.Probability
 import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution}
 import net.paploo.diestats.statistics.pdf.{PDF, PDFAble}
+import net.paploo.diestats.statistics.cdf.{CDF, CDFAble}
 
 import scala.language.implicitConversions
 
@@ -10,7 +10,7 @@ import scala.language.implicitConversions
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
   * @tparam A The domain type.
   */
-trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFAble[A] {
+trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFAble[A] with CDFAble[A] {
 
   /**
     * Returns a new Frequency with the given count added to the pair.
@@ -33,11 +33,9 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFA
 
   override def toFrequency: Frequency[A] = this
 
-  override def toPDF: PDF[A] = {
-    val sum = this.count.toDouble
-    val pairs = this.toMap.mapValues(m => Probability(m.toDouble / sum))
-    PDF.buildFrom(pairs)
-  }
+  override def toPDF: PDF[A] = PDF(this)
+
+  override def toCDF(implicit ordering: Ordering[A]): CDF[A] = this.toPDF.toCDF
 
 }
 

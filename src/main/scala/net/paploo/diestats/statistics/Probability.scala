@@ -13,11 +13,16 @@ case class Probability(toDouble: Double) {
 
   def +(that: Probability): Probability = Probability(this.toDouble + that.toDouble)
   def *(that: Probability): Probability = Probability(this.toDouble * that.toDouble)
-
   def -(that: Probability): Probability = Probability(this.toDouble - that.toDouble)
   def /(that: Probability): Probability = Probability(this.toDouble / that.toDouble)
 
   def unary_- = Probability(-this.toDouble) //Obviously, this will crash, but we endeavour to be DRY on constraints.
+
+  def |+|(that: Probability): Probability = Probability.truncated(this.toDouble + that.toDouble)
+  def |-|(that: Probability): Probability = Probability.truncated(this.toDouble - that.toDouble)
+  def |*|(that: Probability): Probability = Probability.truncated(this.toDouble * that.toDouble)
+  def |/|(that: Probability): Probability = Probability.truncated(this.toDouble / that.toDouble)
+
 
   def compliment: Probability = Probability(1.0 - this.toDouble)
 }
@@ -28,7 +33,10 @@ object Probability {
 
   val one: Probability = apply(1.0)
 
-//  def unapply(prob: Probability): Option[Double] = Some(prob.toDouble)
+  def truncated(double: Double): Probability =
+    if (double <= 0.0) Probability.zero
+    else if (double >= 1.0) Probability.one
+    else apply(double)
 
   def normalizeValues[N](seq: Iterable[N])(implicit num: Numeric[N]): Seq[Probability] = {
     val sumN: N = seq.foldLeft(num.zero)(num.plus)

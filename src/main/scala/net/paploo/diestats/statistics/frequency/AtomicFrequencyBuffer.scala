@@ -9,7 +9,7 @@ import scala.collection.mutable
   * Thread safe mutable frequency accumulation buffer.
   * @tparam A The domain type.
   */
-class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
+private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
 
   private[this] val frequencies: mutable.Map[A, AtomicLong] = mutable.Map.empty
 
