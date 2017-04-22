@@ -9,9 +9,33 @@ import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
   */
 trait FrequencyBuffer[A] extends Frequency[A] {
 
+  /**
+    * Mutably appends the given counts.
+    * @param pair
+    * @return
+    */
   def +=(pair: (A, Long)): FrequencyBuffer[A]
 
+  /**
+    * Mutably appends the given counts.
+    * @param pairs
+    * @return
+    */
   def ++=(pairs: Iterable[(A, Long)]): FrequencyBuffer[A]
+
+  /**
+    * Mutably a value with a count of 1.
+    * @param value
+    * @return
+    */
+  def append(value: A): Frequency[A] = this += ((value, 1L))
+
+  /**
+    * Mutably appends the list of values, with a frequency count for each instance in the list.
+    * @param values
+    * @return
+    */
+  def append(values: Iterable[A]): Frequency[A] = this ++= values.map((_,1L))
 
   def copy: FrequencyBuffer[A]
 

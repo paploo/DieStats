@@ -1,8 +1,6 @@
 package net.paploo.diestats.statistics.pdf
-import net.paploo.diestats.statistics.Probability
-import net.paploo.diestats.statistics.cdf.CDF
 import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
-import net.paploo.diestats.statistics.domain.DomainOps
+import net.paploo.diestats.statistics.util.Probability
 
 /**
   * Implementation of PDF built around immutable Map.
@@ -17,7 +15,6 @@ private[pdf] final class PDFMap[A](normalizedPairs: Map[A, Probability]) extends
 
   override def toPDF: PDF[A] = this
 
-  override def toCDF(implicit ordering: Ordering[A]): CDF[A] = CDF(this)
 }
 
 object PDFMap extends ConcreteDistributionCompanion[Probability, PDFMap] {

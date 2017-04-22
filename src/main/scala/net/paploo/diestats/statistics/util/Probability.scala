@@ -1,4 +1,4 @@
-package net.paploo.diestats.statistics
+package net.paploo.diestats.statistics.util
 
 import scala.language.implicitConversions
 
@@ -8,7 +8,7 @@ import scala.language.implicitConversions
   * This would be an AnyVal value class, however its special range constraints
   * no longer make it a straight replacement.
   */
-case class Probability(toDouble: Double) {
+case class Probability(toDouble: Double) extends Ordered[Probability] {
   require(toDouble >= 0.0 && toDouble <= 1.0, s"Probabilities must be in range [0,1], but got $toDouble")
 
   def +(that: Probability): Probability = Probability(this.toDouble + that.toDouble)
@@ -16,15 +16,15 @@ case class Probability(toDouble: Double) {
   def -(that: Probability): Probability = Probability(this.toDouble - that.toDouble)
   def /(that: Probability): Probability = Probability(this.toDouble / that.toDouble)
 
-  def unary_- = Probability(-this.toDouble) //Obviously, this will crash, but we endeavour to be DRY on constraints.
-
   def |+|(that: Probability): Probability = Probability.truncated(this.toDouble + that.toDouble)
   def |-|(that: Probability): Probability = Probability.truncated(this.toDouble - that.toDouble)
   def |*|(that: Probability): Probability = Probability.truncated(this.toDouble * that.toDouble)
   def |/|(that: Probability): Probability = Probability.truncated(this.toDouble / that.toDouble)
 
-
+  def unary_- : Probability = Probability(-this.toDouble) //Obviously, this will crash, but we endeavour to be DRY on constraints.
   def compliment: Probability = Probability(1.0 - this.toDouble)
+
+  override def compare(that: Probability): Int = this.toDouble compare that.toDouble
 }
 
 object Probability {
@@ -45,7 +45,7 @@ object Probability {
   }
 
   def normalizePairs[A, N](seq: Iterable[(A, N)])(implicit num: Numeric[N]): Seq[(A, Probability)] = {
-    val sumN: N = seq.foldLeft(num.zero){ case (s, (a,p)) => num.plus(s, p) }
+    val sumN: N = seq.foldLeft(num.zero)((s, pair) => num.plus(s, pair._2))
     val sum: Double = num.toDouble(sumN)
     seq.map(pair => pair._1 -> Probability(num.toDouble(pair._2) / sum)).toSeq
   }
@@ -76,7 +76,7 @@ object Probability {
 
     override def toDouble(x: Probability): Double = x.toDouble
 
-    override def compare(x: Probability, y: Probability): Int = x.toDouble compare y.toDouble
+    override def compare(x: Probability, y: Probability): Int = x compare y
   }
 
   trait Implicits {

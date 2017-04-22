@@ -1,7 +1,5 @@
 package net.paploo.diestats.statistics.util
 
-import net.paploo.diestats.statistics.Probability
-
 /**
   * A typeclass interface to random number generation
   */

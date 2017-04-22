@@ -1,18 +1,17 @@
 package net.paploo.diestats.statistics.pdf
 
-import net.paploo.diestats.statistics.Probability
 import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, ProbabilityDistribution}
 import net.paploo.diestats.statistics.domain.DomainOps
 import net.paploo.diestats.statistics.Implicits._
-import net.paploo.diestats.statistics.cdf.CDFAble
 import net.paploo.diestats.statistics.frequency.Frequency
+import net.paploo.diestats.statistics.util.{DistributionStatistics, NumericDistributionStatistics, Probability}
 
 import scala.collection.mutable
 
 /**
   * Probabilitiy Distribution Function
   */
-trait PDF[A] extends ProbabilityDistribution[A] with PDFAble[A] with CDFAble[A] {
+trait PDF[A] extends ProbabilityDistribution[A] {
 
   def convolve(that: PDF[A])(implicit dops: DomainOps[A]): PDF[A] = {
     // For both better memory usage and speed, use mutable.Map as a buffer, and then make immutable.
@@ -28,6 +27,11 @@ trait PDF[A] extends ProbabilityDistribution[A] with PDFAble[A] with CDFAble[A] 
     PDF.buildFromNormalized(buffer) //Note: This is technically mutable, but we return as an immutable interface; we could use toMap to be safer, but then we'd be making an unecesssary copy to enforce immutability.
   }
 
+  override def statistics(implicit ord: Ordering[A]): DistributionStatistics[A, Probability] =
+    DistributionStatistics.fromDistributionPairs(toSeq)
+
+  override def numericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, Probability] =
+    DistributionStatistics.fromNumericDistributionPairs(toSeq)
 }
 
 object PDF extends ConcreteDistributionCompanion[Probability, PDF] {

@@ -33,25 +33,29 @@ trait DomainOps[A] extends Ordering[A] with Monoid[A]
 
 object DomainOps {
 
-  class StringDomainOps extends DomainOps[String] {
-    override def concat(x: String, y: String): String = x + y
+  def apply[A](ord: Ordering[A], monoid: Monoid[A]): DomainOps[A] =
+    new PiecewiseDomainOps[A](ord, monoid)
 
-    override val empty: String = ""
+  class PiecewiseDomainOps[A](ord: Ordering[A], monoid: Monoid[A]) extends DomainOps[A] {
+    override def concat(x: A, y: A): A = monoid.concat(x ,y)
 
-    override def compare(x: String, y: String): Int = x compare y
+    override val empty: A = monoid.empty
+
+    override def compare(x: A, y: A): Int = ord.compare(x, y)
   }
 
-  class NumericDomainOps[A](implicit val num: Numeric[A]) extends DomainOps[A] {
+  class StringDomainOps extends PiecewiseDomainOps[String](Ordering.String, Monoid.stringMonoid)
+  val stringDomainOps: DomainOps[String] = new StringDomainOps()
 
-    override def concat(x: A, y: A): A = num.plus(x, y)
 
-    override def empty: A = num.zero
+  class AdditiveDomainOps[N](implicit num: Numeric[N]) extends PiecewiseDomainOps[N](num, Monoid.additiveMonoid(num))
+  def additiveDomainOps[N](implicit num: Numeric[N]): DomainOps[N] = new AdditiveDomainOps[N]()
 
-    override def compare(x: A, y: A): Int = num.compare(x, y)
-  }
+  class MultiplicativeDomainOps[N](implicit num: Numeric[N]) extends PiecewiseDomainOps[N](num, Monoid.multiplicativeMonoid(num))
+  def multiplicativeDomainOps[N](implicit num: Numeric[N]): DomainOps[N] = new MultiplicativeDomainOps[N]()
 
-  class UnorderedSeqDomainOps[A](implicit val ordering: Ordering[A]) extends DomainOps[Seq[A]] {
-    override def concat(x: Seq[A], y: Seq[A]): Seq[A] = x ++ y
+  class OrderedSeqDomainOps[A](implicit val ordering: Ordering[A]) extends DomainOps[Seq[A]] {
+    override def concat(x: Seq[A], y: Seq[A]): Seq[A] = (x ++ y).sorted
 
     override def empty: Seq[A] = Seq.empty
 
@@ -78,8 +82,13 @@ object DomainOps {
   }
 
   trait Implicits {
-    implicit val stringDomainOps: DomainOps[String] = new StringDomainOps
-    implicit def numericDomainOps[A](implicit num: Numeric[A]): DomainOps[A] = new NumericDomainOps[A]
+    implicit val stringDomainOps: DomainOps[String] = DomainOps.stringDomainOps
+
+    /**
+      * There are two definitions of Monoid over numerics, however addition is the one most used
+      * with PDFs, so we default to this in the Implicits.
+      */
+    implicit def additiveDomainOps[A](implicit num: Numeric[A]): DomainOps[A] = new AdditiveDomainOps[A]
   }
 
   object Implicits extends Implicits

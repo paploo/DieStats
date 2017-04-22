@@ -8,9 +8,14 @@ import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
   */
 private[frequency] final class FrequencyMap[A](frequencies: Map[A, Long]) extends Frequency[A] {
 
-  override def +(pair: (A, Long)): Frequency[A] = FrequencyMap.buildFrom(frequencies + pair)
+  override def +(pair: (A, Long)): Frequency[A] =
+    new FrequencyMap[A](frequencies.updated(
+      pair._1,
+      frequencies.getOrElse(pair._1, 0L) + pair._2
+    ))
 
-  override def ++(pairs: Iterable[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(frequencies ++ pairs)
+  override def ++(pairs: Iterable[(A, Long)]): Frequency[A] =
+    pairs.foldLeft(this.toFrequency)(_ + _)
 
   override def get(a: A): Option[Long] = frequencies.get(a)
 
