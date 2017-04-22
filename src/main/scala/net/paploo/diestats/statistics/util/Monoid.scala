@@ -60,5 +60,6 @@ object Monoid {
 
     implicit def seqMonoid[A]: Monoid[Seq[A]] = Monoid.seqMonoid
   }
+  object Implicits extends Implicits
 
 }

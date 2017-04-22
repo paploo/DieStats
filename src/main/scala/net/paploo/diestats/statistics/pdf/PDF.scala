@@ -1,10 +1,9 @@
 package net.paploo.diestats.statistics.pdf
 
 import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, ProbabilityDistribution}
-import net.paploo.diestats.statistics.domain.DomainOps
 import net.paploo.diestats.statistics.Implicits._
 import net.paploo.diestats.statistics.frequency.Frequency
-import net.paploo.diestats.statistics.util.{DistributionStatistics, NumericDistributionStatistics, Probability}
+import net.paploo.diestats.statistics.util.{DistributionStatistics, Monoid, NumericDistributionStatistics, Probability}
 
 import scala.collection.mutable
 
@@ -13,14 +12,14 @@ import scala.collection.mutable
   */
 trait PDF[A] extends ProbabilityDistribution[A] {
 
-  def convolve(that: PDF[A])(implicit dops: DomainOps[A]): PDF[A] = {
+  def convolve(that: PDF[A])(implicit monoid: Monoid[A]): PDF[A] = {
     // For both better memory usage and speed, use mutable.Map as a buffer, and then make immutable.
     val buffer = mutable.Map.empty[A, Probability]
     for {
       (xa, xp) <- this.toSeq
       (ya, yp) <- that.toSeq
     } {
-      val key = dops.concat(xa, ya)
+      val key = monoid.concat(xa, ya)
       val value = buffer.getOrElseUpdate(key, Probability.zero) + (xp * yp)
       buffer += key -> value
     }

@@ -85,7 +85,6 @@ object Probability {
 
     implicit val fractionalTypeclass: Fractional[Probability] = Probability.fractionalTypeclass
   }
-
   object Implicits extends Implicits
 
 }

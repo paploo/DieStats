@@ -1,9 +1,6 @@
 package net.paploo.diestats.expr
 
-import net.paploo.diestats.statistics.domain.DomainOps
-import net.paploo.diestats.statistics.frequency.Frequency
-import net.paploo.diestats.statistics.pdf.{PDF, PDFAble}
-import net.paploo.diestats.statistics.util.{DistributionStatistics, NumericDistributionStatistics, Probability, StatisticalDistribution}
+import net.paploo.diestats.statistics.pdf.PDF
 
 /**
   * Base trait for expressions over a domain of type A.
@@ -28,11 +25,15 @@ trait Expression[A, R] extends (ExpressionOps[A, R] => R) {
 
   def unary_- : Expression[A, R] = Expression.Negate(this)
 
-  def repeat(times: Int) = Expression.Repeat(this, times)
+  def repeat(times: Int): Expression[A, R] = Expression.Repeat(this, times)
 
 }
 
 object Expression {
+
+  def takeLower[A, R](n: Int, exprs: Iterable[Expression[A, R]]): Expression[A, R] = Expression.takeLower(n, exprs)
+
+  def takeUpper[A, R](n: Int, exprs: Iterable[Expression[A, R]]): Expression[A, R] = Expression.takeUpper(n, exprs)
 
   case class Plus[A, R](x: Expression[A, R], y: Expression[A, R]) extends Expression[A, R] {
     override def apply(ops: ExpressionOps[A, R]): R = ops.plus(x, y)
@@ -62,63 +63,16 @@ object Expression {
     override def apply(ops: ExpressionOps[A, R]): R = ops.takeLower(n , exprs)
   }
 
-}
+  case class TakeUpper[A, R](n: Int, exprs: Iterable[Expression[A, R]]) extends Expression[A, R] {
+    override def apply(ops: ExpressionOps[A, R]): R = ops.takeUpper(n , exprs)
+  }
 
-/**
-  * Trait expressing an implementation of operations over expressions on domain A,
-  * returning value R.
-  *
-  * Example concrete types for R include a PDF for analysis, or even A in random value generation.
-  *
-  * ExpressionOps contains a mixture of operations that are expected, but only a
-  * subset can be done on some domains. In the current design, it is up to the
-  * implementation do decide how to handle non-sensical operations for a given
-  * domain. For example, some consumers of this library may decide to throw
-  * exceptions, while others may parameterize R over an Either or Try, while
-  * others may make specialized validation ExpressionOps implementations for
-  * a domain.
-  * @tparam A The domain
-  * @tparam R The operation aggregation value.
-  */
-trait ExpressionOps[A, R] {
+  case class Values[A, R](values: Seq[A]) extends Expression[A, R] {
+    override def apply(ops: ExpressionOps[A, R]): R = ops.apply(values)
+  }
 
-  def plus(x: Expression[A, R], y: Expression[A, R]): R
-
-  def minus(x: Expression[A, R], y: Expression[A, R]): R
-
-  def times(X: Expression[A, R], y: Expression[A, R]): R
-
-  def div(X: Expression[A, R], y: Expression[A, R]): R
-
-  def negate(x: Expression[A, R]): R
-
-  def repeat(times: Int, x: Expression[A, R]): R
-  
-  def takeLower(n: Int, exprs: Iterable[Expression[A, R]]): R
-  
-  def takeUpper(n: Int, exprs: Iterable[Expression[A, R]]): R
-
-}
-
-
-//TODO: This may not be that interesting, instead letting ExpressionOps take care of it?
-//TODO: On the otherhand, I could see a consumer of PDFs wanting this sort of thing.
-trait PDFOps[A] {
-
-  def plus(x: PDF[A], y: PDF[A]): PDF[A]
-
-  def minus(x: PDF[A], y: PDF[A]): PDF[A]
-
-  def times(X: PDF[A], y: PDF[A]): PDF[A]
-
-  def div(X: PDF[A], y: PDF[A]): PDF[A]
-
-  def negate(x: PDF[A]): PDF[A]
-
-  def repeat(times: Int, x: PDF[A]): PDF[A]
-
-  def takeLower(n: Int, pdfs: Iterable[PDF[A]]): PDF[A]
-
-  def takeUpper(n: Int, pdfs: Iterable[PDF[A]]): PDF[A]
+  case class ValueCounts[A, R](valueCounts: Seq[(A, Long)]) extends Expression[A, R] {
+    override def apply(ops: ExpressionOps[A, R]): R = ops.applyCounts(valueCounts)
+  }
 
 }
