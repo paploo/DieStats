@@ -3,7 +3,10 @@ package net.paploo.diestats.statistics.distribution
 import scala.language.higherKinds
 
 /**
-  * The base trait for distributions over the domain A.
+  * The base trait for discrete distributions over the domain A.
+  *
+  * This library, being made for dice statistics, focuses entirely on
+  * discrete distributions, so we dispense with the "Discrete" prefix.
   *
   * @tparam A The domain type.
   * @tparam B The value for an input from the domain; this is typically a numeric type.

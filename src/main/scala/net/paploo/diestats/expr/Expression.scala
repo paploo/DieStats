@@ -1,6 +1,6 @@
 package net.paploo.diestats.expr
 
-import net.paploo.diestats.statistics.pdf.PDF
+import net.paploo.diestats.statistics.probabilitydistribution.ProbabilityDistribution
 
 /**
   * Base trait for expressions over a domain of type A.
@@ -8,7 +8,7 @@ import net.paploo.diestats.statistics.pdf.PDF
   * Expressions define an AST for forming values over a domain A, with evaluation of operations
   * based withheld until an appropriate evaluation context is applied to generate a result.
   *
-  * Example contexts include evalutation to PDFs, Statistics, or Randomly Generated Values.
+  * Example contexts include evalutation to ProbabilityDistributions, Statistics, or Randomly Generated Values.
   *
   * @tparam A
   * @tparam R

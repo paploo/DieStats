@@ -4,7 +4,7 @@ package net.paploo.diestats.expr
   * Trait expressing an implementation of operations over expressions on domain A,
   * returning value R.
   *
-  * Example concrete types for R include a PDF for analysis, or even A in random value generation.
+  * Example concrete types for R include a ProbabilityDistribution for analysis, or even A in random value generation.
   *
   * ExpressionOps contains a mixture of operations that are expected, but only a
   * subset can be done on some domains. In the current design, it is up to the
@@ -45,7 +45,7 @@ object ExpressionOps {
   /**
     * The most common domain—used in almost all board games—is an Int domain.
     *
-    * We define both a PDF implementation, and a random value generation implementation.
+    * We define both a ProbabilityDistribution implementation, and a random value generation implementation.
     */
   object IntDomainExpressionOps {
 
@@ -53,7 +53,7 @@ object ExpressionOps {
 
     }
 
-    class PDF {
+    class PrbabilityDistribution {
 
     }
 

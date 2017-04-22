@@ -1,14 +1,14 @@
 package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution}
-import net.paploo.diestats.statistics.pdf.{PDF, PDFAble}
+import net.paploo.diestats.statistics.probabilitydistribution.{ProbabilityDistribution, ProbabilityDistributionable}
 import net.paploo.diestats.statistics.util.{StatisticalDistribution, DistributionStatistics, NumericDistributionStatistics}
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
   * @tparam A The domain type.
   */
-trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFAble[A] with StatisticalDistribution[A, Long] {
+trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with ProbabilityDistributionable[A] with StatisticalDistribution[A, Long] {
 
   /**
     * Returns a new Frequency with the given count added to the pair.
@@ -45,7 +45,7 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with PDFA
 
   override def toFrequency: Frequency[A] = this
 
-  override def toPDF: PDF[A] = PDF(this)
+  override def toProbabilityDistribution: ProbabilityDistribution[A] = ProbabilityDistribution(this)
 
   override def statistics(implicit ord: Ordering[A]): DistributionStatistics[A, Long] =
     DistributionStatistics.fromDistributionPairs(toSeq)

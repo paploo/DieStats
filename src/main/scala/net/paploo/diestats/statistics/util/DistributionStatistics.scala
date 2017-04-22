@@ -140,7 +140,7 @@ object DistributionStatistics {
       * Accumulates the given list of pairs according the provided domain ordering;
       * the result is also properly ordered.
       *
-      * When seeded with pairs from a PDF, a CDF is returned.
+      * When seeded with pairs from a ProbabilityDistribution, a cumulative distribution is returned.
       */
     def accumulate[A, N](pairs: Iterable[(A, N)])(implicit ordA: Ordering[A], numN: Numeric[N]): Seq[(A, N)] =
       pairs.toSeq.sorted.foldLeft(Memo.empty[A,N])(_ + _).cumulativePairs
