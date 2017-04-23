@@ -38,8 +38,8 @@ object ProbabilityDistribution extends ConcreteDistributionCompanion[Probability
   override def empty[A]: ProbabilityDistribution[A] = ProbabilityDistributionMap.empty
 
   def apply[A](freq: Frequency[A]): ProbabilityDistribution[A] = {
-    val sum = freq.count.toDouble
-    val pairs = freq.toMap.mapValues(m => Probability(m.toDouble / sum))
+    val sum = freq.count
+    val pairs = freq.toMap.mapValues(m => Probability(m, sum))
     ProbabilityDistribution.buildFrom(pairs)
   }
 

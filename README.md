@@ -3,36 +3,23 @@
 
 ## Overview
 
-This library will focus on producing several main pieces:
+This library provides mechanisms for doing statistical analysis on dice expressions;
+it consists of four main parts:
 
-1. A statistics package focused around probability distribution function combinatorics,
-2. An Die Expression Tree that can be evaluated to generate PDFs, CDFs, or values.
-3. 
+1. A statistics library for working with distributions over discrete domains,
+2. A dice expression AST for structuring expressions that can be evaluated in various ways,
+3. A parser that converts string dice expressions into an AST, and
+4. A command line utility that fronts the parser and produces result output.
 
 ## History
 
-* v0.3.x (Sprint 2017) - I have even better ideas!
+* v0.3.x (Sprint 2017) - Complete rewrite to facilitate non-numerical domains.
 * v0.2.x (Spring 2016) - Started on a rewrite from scratch to be better.
 * v0.1.x (Dec 2013) - An initial prototype to learn some Scala.
 
-## Design Specification:
+## Task Overview
 
-### Distributions
-
-1. Formally define Probability values as a type wrapper.
-2. Formally define Domains using a typeclass.
-3. Introduce a type hierarchy for frequencies, PDFs and CDFs:
-   - FrequencyDistribution: Defines counts against a domain A.
-   - PDF: Defines probability distribution from frequencies.
-   - CDF: Defines cumulative distribution from frequencies.
-
-Some notes:
-
-* Domain type classes really only need concat defined for convolution.
-* Domains are sometimes ordered and sometimes not; distributions shouldn't care,
-  instead we should have ways of getting the domain and ordering is applied later.
-  (One way is to have the domain typeclass know about ordering, and have it have
-   an "identity" ordering by default, which does nothing.)
-* Need frequency buffers which allow fast, mutable accumulation.
-* PDFs can be used to generate random values, but we might want to typeclass our
-  random number generator so that we can have different implementations.
+* (80%) Statistics Library Implementation
+* (40%) Expression Library Implementation
+* (_) Parser Library Implementation
+* (_) CLI Implementation

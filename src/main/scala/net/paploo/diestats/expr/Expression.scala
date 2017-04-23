@@ -1,7 +1,5 @@
 package net.paploo.diestats.expr
 
-import net.paploo.diestats.statistics.probabilitydistribution.ProbabilityDistribution
-
 /**
   * Base trait for expressions over a domain of type A.
   *

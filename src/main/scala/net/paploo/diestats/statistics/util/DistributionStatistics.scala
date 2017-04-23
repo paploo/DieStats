@@ -109,7 +109,7 @@ object DistributionStatistics {
       }
     }
 
-    override lazy val median: A = percentile(Probability(0.5))
+    override lazy val median: A = percentile(Probability(1L, 2L))
 
     override def percentile(p: Probability): A = cumulativePairs.reverseIterator.find {
       pair => frequencyNumeric.toDouble(pair._2) <= p.toDouble
@@ -147,7 +147,7 @@ object DistributionStatistics {
 
     private[this] case class Memo[A, N](cumulativePairs: Seq[(A, N)], runningSum: N)(implicit numN: Numeric[N]) {
       def +(pair: (A,N)): Memo[A, N] = {
-        val newRunningSum = numN.plus(runningSum, pair._2)
+        val newRunningSum = numN.plus(runningSum, pair._2) //TODO: For Probability, rounding errors could cause this to be 1+ε and fail to construct.
         Memo(cumulativePairs :+ pair.copy(_2 = newRunningSum), newRunningSum)
       }
     }
