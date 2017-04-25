@@ -1,9 +1,9 @@
 package net.paploo.diestats.statistics.probabilitydistribution
 
-import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution}
+import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
 import net.paploo.diestats.statistics.Implicits._
 import net.paploo.diestats.statistics.frequency.Frequency
-import net.paploo.diestats.statistics.util.{DistributionStatistics, Monoid, NumericDistributionStatistics, Probability, StatisticalDistribution}
+import net.paploo.diestats.statistics.util.{Monoid, Probability}
 
 import scala.collection.mutable
 

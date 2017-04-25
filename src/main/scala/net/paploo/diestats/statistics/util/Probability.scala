@@ -67,7 +67,7 @@ case class Probability(numerator: BigInt, denominator: BigInt) extends Ordered[P
 
   def toDouble: Double = numerator.toDouble / denominator.toDouble
 
-  def toDecimal: BigDecimal = BigDecimal(numerator) / BigDecimal(denominator)
+  def toBigDecimal: BigDecimal = BigDecimal(numerator) / BigDecimal(denominator)
 }
 
 object Probability {

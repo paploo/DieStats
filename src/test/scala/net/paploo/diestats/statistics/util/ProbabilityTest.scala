@@ -12,12 +12,12 @@ class ProbabilityTest extends SpecTest {
 
       it("should create from a numerator and denominator") {
         val prob = Probability(1, 3)
-        prob.toDecimal should === (BigDecimal(1) / BigDecimal(3))
+        prob.toBigDecimal should === (BigDecimal(1) / BigDecimal(3))
       }
 
       it("should auto simplify the fraction") {
         val prob = Probability(6, 18)
-        prob.toDecimal should === (BigDecimal(1) / BigDecimal(3))
+        prob.toBigDecimal should === (BigDecimal(1) / BigDecimal(3))
       }
 
       it("should give an error if out of bounds") {
@@ -27,8 +27,8 @@ class ProbabilityTest extends SpecTest {
       }
 
       it("should allow one and zero") {
-        Probability.zero.toDecimal should === (BigDecimal(0))
-        Probability.one.toDecimal should === (BigDecimal(1))
+        Probability.zero.toBigDecimal should === (BigDecimal(0))
+        Probability.one.toBigDecimal should === (BigDecimal(1))
       }
 
     }

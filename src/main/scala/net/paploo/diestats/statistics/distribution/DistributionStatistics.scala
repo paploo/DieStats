@@ -1,7 +1,14 @@
-package net.paploo.diestats.statistics.util
+package net.paploo.diestats.statistics.distribution
+
+import net.paploo.diestats.statistics.util.{Probability, RandomGenerator}
 
 /**
-  * Statistics over a frequency distribution with an ordered domain.
+  * Computed Statistics over a frequency distribution.
+  *
+  * As part of computation, domain ordering and frequency ordering
+  * are solidified. For example, percentile calculation requires
+  * sorting and accumulating, which are both expensive operations
+  * (and even domain min and max require sorting).
   *
   * Technically, this could be divided into intermediate traits for
   * ordered domains (e.g. min, max, and domain), and ordered ranges
@@ -10,9 +17,21 @@ package net.paploo.diestats.statistics.util
   * Technically, we could have an intermediate trait for an ordered range
   * (that is non-numeric, and hence not a frequency), that contains a subset
   * of these computations, but there is little need for this normalization.
+  *
   * @tparam A The domain type
   * @tparam N The frequency type
   */
+/*
+  * TODO: This took the example of, say, a SortedMap, and stores the ordering, however this feels weird, since typeclasses are usually applied at the call site;
+  * One problem is that we've conflated generation of the statistics with caching of the values. We may want to break
+  * it up, however problems arise when we think about computing percentiles, which are only performant when we cache the
+  * accumulations over a Numeric[N] and a domain Ordering[A].
+  * A solution would be to separate out the static precomputed bits (like min, max, mean, kurtosis) from the
+  * functions (like percentile calculation) so that percentiles are done against a specific ordering/numeric
+  * while everything else is precomputed static data. What this really means, though, is that computation will
+  * likely get moved into a factory class which looks just like the values here, at which point we might as
+  * well keep them together.
+ */
 trait DistributionStatistics[A, N] {
 
   implicit def domainOrdering: Ordering[A]
@@ -20,6 +39,21 @@ trait DistributionStatistics[A, N] {
   implicit def frequencyNumeric: Numeric[N]
 
   implicit def frequencyOrdering: Ordering[N] = frequencyNumeric
+
+  /**
+    * The pairs of frequency/probability vs. domain.
+    * @return
+    */
+  def sortedPairs: Seq[(A, N)]
+
+  /**
+    * The cumulative distribution pairs.
+    *
+    * Note that the cumulation happens on the numeric type of the
+    * distribution, and is NOT normalized as a Probability.
+    * @return
+    */
+  def cumulativePairs: Seq[(A, N)]
 
   /**
     * The domain, ordered according to domainOrdering.
@@ -91,23 +125,23 @@ object DistributionStatistics {
   private[this] class DefaultDistributionStatistics[A, N](unsortedPairs: Iterable[(A, N)])(implicit override val domainOrdering: Ordering[A], override val frequencyNumeric: Numeric[N])
     extends DistributionStatistics[A, N] {
 
-    val pairs: Seq[(A, N)] = unsortedPairs.toSeq.sortBy(_._1)
+    override val sortedPairs: Seq[(A, N)] = unsortedPairs.toSeq.sortBy(_._1)
 
-    lazy val cumulativePairs: Seq[(A, N)] = CumulativePairs.accumulate(unsortedPairs)
+    override lazy val cumulativePairs: Seq[(A, N)] = CumulativePairs.accumulate(unsortedPairs)
 
-    override val domain: Seq[A] = pairs.map(_._1)
+    override val domain: Seq[A] = sortedPairs.map(_._1)
 
     override val min: A = domain.min
 
     override val max: A = domain.max
 
-    override val sum: N = pairs.foldLeft(frequencyNumeric.zero) {
+    override val sum: N = sortedPairs.foldLeft(frequencyNumeric.zero) {
       (s, pair) => frequencyNumeric.plus(s, pair._2)
     }
 
     override lazy val modes: Seq[A] = {
-      val maxValue = pairs.map(_._2).max(frequencyOrdering)
-      pairs.flatMap { pair =>
+      val maxValue = sortedPairs.map(_._2).max(frequencyOrdering)
+      sortedPairs.flatMap { pair =>
         if (frequencyOrdering.equiv(pair._2, maxValue)) Seq(pair._1)
         else Seq.empty
       }
@@ -115,8 +149,12 @@ object DistributionStatistics {
 
     override lazy val median: A = percentile(Probability(1L, 2L))
 
-    override def percentile(p: Probability): A = cumulativePairs.reverseIterator.find {
-      pair => frequencyNumeric.toDouble(pair._2) <= p.toDouble
+    override def percentile(p: Probability): A = cumulativePairs.find { pair =>
+      // TODO: Ideally, we'd convert N to Probability, especially when N is integral
+      val numerator: BigDecimal = frequencyNumeric.toDouble(pair._2)
+      val denominator: BigDecimal = frequencyNumeric.toDouble(sum)
+      val normalizedValue = numerator / denominator
+      p.toBigDecimal <= normalizedValue
     }.get._1
 
   }
@@ -127,7 +165,7 @@ object DistributionStatistics {
     override lazy val mean: Double = {
       val frequencySumDouble = frequencyNumeric.toDouble(sum)
       // calculate the weighted values, but normalize by denominator sooner than later
-      pairs.foldLeft(0.0){ (terms, pair) =>
+      sortedPairs.foldLeft(0.0){ (terms, pair) =>
         val weight = frequencyNumeric.toDouble(pair._2) / frequencySumDouble
         val domainDouble = domainNumeric.toDouble(pair._1)
         terms + (weight * domainDouble)
