@@ -72,6 +72,10 @@ trait NumericDistributionStatistics[A, N] extends DistributionStatistics[A, N] {
 
   def stdDev: Double
 
+  def skewness: Double
+
+  def kurtosis: Double
+
 }
 
 object DistributionStatistics {
@@ -132,7 +136,11 @@ object DistributionStatistics {
 
     override def variance: Double = ???
 
-    override def stdDev: Double = ???
+    override def stdDev: Double = Math.sqrt(variance)
+
+    override def skewness: Double = ???
+
+    override def kurtosis: Double = ???
   }
 
   object CumulativePairs {
