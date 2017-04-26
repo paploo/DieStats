@@ -135,6 +135,4 @@ object Probability {
   }
   implicit object ProbabilityIsFractional extends ProbabilityIsFractional
 
-  implicit def probabilityToDouble(prob: Probability): Double = prob.toDouble
-
 }

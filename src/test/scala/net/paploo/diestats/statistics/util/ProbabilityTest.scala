@@ -94,11 +94,6 @@ class ProbabilityTest extends SpecTest {
     val x = Probability(1, 4)
     val y = Probability(3, 4)
 
-    it("should convert to double automatically") {
-      val value: Double = Probability(3, 4)
-      value should === (0.75 +- ε)
-    }
-
     it("should resolve the ordering") {
       val ord = implicitly[Ordering[Probability]]
       ord.compare(x, y) should === (-1)

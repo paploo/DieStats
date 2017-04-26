@@ -154,13 +154,33 @@ object DistributionStatistics {
       }
     }
 
-    override def variance: Double = ???
+    override lazy val variance: Double = cumulant(2)
 
-    override def stdDev: Double = Math.sqrt(variance)
+    override lazy val stdDev: Double = Math.sqrt(variance)
 
-    override def skewness: Double = ???
+    override lazy val skewness: Double = cumulant(3) / Math.pow(stdDev, 3)
 
-    override def kurtosis: Double = ???
+    override lazy val kurtosis: Double = cumulant(4) / Math.pow(stdDev, 4)
+
+    /**
+      * Calculate the k-th cumulant.
+      *
+      * The cumulant is
+      *   Expectation[((X - mu)/sigma)^k],
+      * which for a list of values is
+      *   (1/N) * Sum[(xi - mu)^k, {i,1,N}].
+      * Taking into account that we have frequencies (weights), and
+      * distributing the coefficient, we get:
+      *   Sum[(wi/N) * (xi - mu)^k, i]
+      */
+    private[this] def cumulant(k: Int) =  {
+      val n: Double = frequencyNumeric.toDouble(sum)
+      unsortedPairs.foldLeft(0.0) { (sum, pair) =>
+        val weight = frequencyNumeric.toDouble(pair._2) / n
+        val term = weight * Math.pow(domainNumeric.toDouble(pair._1) - mean, k)
+        sum + term
+      }
+    }
   }
 
   object CumulativePairs {
