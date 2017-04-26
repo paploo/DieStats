@@ -7,8 +7,6 @@ class DistributionStatisticsTest extends SpecTest {
 
   describe("Numeric Distribution Statistics") {
 
-    import Probability.Implicits._
-
     val distProps = new TestBinomialDistributionFourTrialsOfOneOverFour {}
 
     val stats = DistributionStatistics.fromNumericDistributionPairs(

@@ -109,40 +109,32 @@ object Probability {
     seq.map(pair => pair._1 -> Probability(num.toLong(pair._2), num.toLong(sum))).toSeq
   }
 
-  val fractionalTypeclass: Fractional[Probability] = new Fractional[Probability] {
-
-    override def zero: Probability = Probability.zero
-
-    override def one: Probability = Probability.one
-
-    override def div(x: Probability, y: Probability): Probability = x / y
-
-    override def plus(x: Probability, y: Probability): Probability = x + y
-
-    override def minus(x: Probability, y: Probability): Probability = x - y
-
-    override def times(x: Probability, y: Probability): Probability = x * y
-
-    override def negate(x: Probability): Probability = throw new ArithmeticException(s"Probability cannot contain negative value $x")
-
-    override def fromInt(x: Int): Probability = if (x <= 0) zero else one
-
-    override def toInt(x: Probability): Int = x.toDouble.toInt
-
-    override def toLong(x: Probability): Long = x.toDouble.toLong
-
-    override def toFloat(x: Probability): Float = x.toDouble.toFloat
-
-    override def toDouble(x: Probability): Double = x.toDouble
-
+  trait ProbabilityOrdering extends Ordering[Probability] {
     override def compare(x: Probability, y: Probability): Int = x compare y
   }
+  object ProbabilityOrdering extends ProbabilityOrdering
 
-  trait Implicits {
-    implicit def probabilityToDouble(prob: Probability): Double = prob.toDouble
-
-    implicit val fractionalTypeclass: Fractional[Probability] = Probability.fractionalTypeclass
+  trait ProbabilityIsConflicted extends Numeric[Probability] with ProbabilityOrdering {
+    override def plus(x: Probability, y: Probability): Probability = x + y
+    override def minus(x: Probability, y: Probability): Probability = x - y
+    override def times(x: Probability, y: Probability): Probability = x * y
+    override def negate(x: Probability): Probability = throw new ArithmeticException(s"$x cannot be negated because Probability must be positive")
+    override def fromInt(x: Int): Probability = if (x <= 0) zero else one
+    override def toInt(x: Probability): Int = x.toDouble.toInt
+    override def toLong(x: Probability): Long = x.toDouble.toLong
+    override def toFloat(x: Probability): Float = x.toDouble.toFloat
+    override def toDouble(x: Probability): Double = x.toDouble
   }
-  object Implicits extends Implicits
+  object ProbabilityIsConflicted extends ProbabilityIsConflicted
+
+  trait ProbabilityIsFractional extends Fractional[Probability] with ProbabilityIsConflicted {
+    override def zero: Probability = Probability.zero
+    override def one: Probability = Probability.one
+    override def div(x: Probability, y: Probability): Probability = x / y
+
+  }
+  implicit object ProbabilityIsFractional extends ProbabilityIsFractional
+
+  implicit def probabilityToDouble(prob: Probability): Double = prob.toDouble
 
 }

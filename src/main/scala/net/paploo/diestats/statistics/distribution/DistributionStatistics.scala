@@ -1,42 +1,28 @@
 package net.paploo.diestats.statistics.distribution
 
-import net.paploo.diestats.statistics.util.{Probability, RandomGenerator}
+import net.paploo.diestats.statistics.util.{FrequencyNumeric, Probability, RandomGenerator}
 
 /**
-  * Computed Statistics over a frequency distribution.
+  * Computed Statistics over a frequency distribution, closed
+  * over a concrete Ordering[A] and Numeric[N].
   *
   * As part of computation, domain ordering and frequency ordering
   * are solidified. For example, percentile calculation requires
-  * sorting and accumulating, which are both expensive operations
-  * (and even domain min and max require sorting).
+  * sorting and accumulating (which are both expensive operations),
+  * and even domain min and max require pre-sorting.
   *
   * Technically, this could be divided into intermediate traits for
   * ordered domains (e.g. min, max, and domain), and ordered ranges
-  * (e.g. modes)
-  *
-  * Technically, we could have an intermediate trait for an ordered range
-  * (that is non-numeric, and hence not a frequency), that contains a subset
-  * of these computations, but there is little need for this normalization.
+  * (e.g. modes).
   *
   * @tparam A The domain type
   * @tparam N The frequency type
   */
-/*
-  * TODO: This took the example of, say, a SortedMap, and stores the ordering, however this feels weird, since typeclasses are usually applied at the call site;
-  * One problem is that we've conflated generation of the statistics with caching of the values. We may want to break
-  * it up, however problems arise when we think about computing percentiles, which are only performant when we cache the
-  * accumulations over a Numeric[N] and a domain Ordering[A].
-  * A solution would be to separate out the static precomputed bits (like min, max, mean, kurtosis) from the
-  * functions (like percentile calculation) so that percentiles are done against a specific ordering/numeric
-  * while everything else is precomputed static data. What this really means, though, is that computation will
-  * likely get moved into a factory class which looks just like the values here, at which point we might as
-  * well keep them together.
- */
 trait DistributionStatistics[A, N] {
 
   implicit def domainOrdering: Ordering[A]
 
-  implicit def frequencyNumeric: Numeric[N]
+  implicit def frequencyNumeric: FrequencyNumeric[N]
 
   implicit def frequencyOrdering: Ordering[N] = frequencyNumeric
 
@@ -86,7 +72,7 @@ trait DistributionStatistics[A, N] {
 
 /**
   * In some cases, the domain can be considered numeric, and extra statistics can
-  * then be calculated.
+  * then be calculated over the Numeric[A].
   * @tparam A The domain type
   * @tparam N The frequency type
   */
@@ -115,14 +101,14 @@ trait NumericDistributionStatistics[A, N] extends DistributionStatistics[A, N] {
 object DistributionStatistics {
 
   private[statistics] def fromDistributionPairs[A, N](unsortedPairs: Iterable[(A, N)])
-                                                     (implicit domainOrdering: Ordering[A], frequencyNumeric: Numeric[N]): DistributionStatistics[A, N] =
+                                                     (implicit domainOrdering: Ordering[A], frequencyNumeric: FrequencyNumeric[N]): DistributionStatistics[A, N] =
     new DefaultDistributionStatistics[A, N](unsortedPairs)
 
   private[statistics] def fromNumericDistributionPairs[A, N](unsortedPairs: Iterable[(A, N)])
-                                                            (implicit domainNumeric: Numeric[A], frequencyNumeric: Numeric[N]): NumericDistributionStatistics[A, N] =
+                                                            (implicit domainNumeric: Numeric[A], frequencyNumeric: FrequencyNumeric[N]): NumericDistributionStatistics[A, N] =
     new DefaultNumericDistributionStatistics[A, N](unsortedPairs)
 
-  private[this] class DefaultDistributionStatistics[A, N](unsortedPairs: Iterable[(A, N)])(implicit override val domainOrdering: Ordering[A], override val frequencyNumeric: Numeric[N])
+  private[this] class DefaultDistributionStatistics[A, N](unsortedPairs: Iterable[(A, N)])(implicit override val domainOrdering: Ordering[A], override val frequencyNumeric: FrequencyNumeric[N])
     extends DistributionStatistics[A, N] {
 
     override val sortedPairs: Seq[(A, N)] = unsortedPairs.toSeq.sortBy(_._1)
@@ -150,16 +136,12 @@ object DistributionStatistics {
     override lazy val median: A = percentile(Probability(1L, 2L))
 
     override def percentile(p: Probability): A = cumulativePairs.find { pair =>
-      // TODO: Ideally, we'd convert N to Probability, especially when N is integral
-      val numerator: BigDecimal = frequencyNumeric.toDouble(pair._2)
-      val denominator: BigDecimal = frequencyNumeric.toDouble(sum)
-      val normalizedValue = numerator / denominator
-      p.toBigDecimal <= normalizedValue
+      p <= frequencyNumeric.toProbability(pair._2, sum)
     }.get._1
 
   }
 
-  private[this] class DefaultNumericDistributionStatistics[A, N](unsortedPairs: Iterable[(A, N)])(implicit override val domainNumeric: Numeric[A], frequencyNumeric: Numeric[N])
+  private[this] class DefaultNumericDistributionStatistics[A, N](unsortedPairs: Iterable[(A, N)])(implicit override val domainNumeric: Numeric[A], frequencyNumeric: FrequencyNumeric[N])
     extends DefaultDistributionStatistics[A, N](unsortedPairs)(domainNumeric, frequencyNumeric) with NumericDistributionStatistics[A, N] {
 
     override lazy val mean: Double = {

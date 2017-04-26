@@ -2,6 +2,7 @@ package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
 import net.paploo.diestats.statistics.probabilitydistribution.{ProbabilityDistribution, ProbabilityDistributionable}
+//import net.paploo.diestats.statistics.util.FrequencyNumeric.Implicits._
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.

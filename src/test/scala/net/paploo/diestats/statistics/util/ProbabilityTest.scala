@@ -89,4 +89,37 @@ class ProbabilityTest extends SpecTest {
 
   }
 
+  describe("Implicits") {
+
+    val x = Probability(1, 4)
+    val y = Probability(3, 4)
+
+    it("should convert to double automatically") {
+      val value: Double = Probability(3, 4)
+      value should === (0.75 +- ε)
+    }
+
+    it("should resolve the ordering") {
+      val ord = implicitly[Ordering[Probability]]
+      ord.compare(x, y) should === (-1)
+    }
+
+    it("should resolve the numeric") {
+      val num = implicitly[Numeric[Probability]]
+      num.times(x, y) should === (Probability(3, 16))
+    }
+
+    it("hould resolve the fractional") {
+      val frac = implicitly[Fractional[Probability]]
+      frac.div(x, y) should === (Probability(1, 3))
+    }
+
+    it("should resolve the frequencyNumeric") {
+      //TODO: Move this test to FrequencyNumeric?
+      val fn = implicitly[FrequencyNumeric[Probability]]
+      fn.toProbability(x, y) should === (Probability(1, 3))
+    }
+
+  }
+
 }
