@@ -1,7 +1,6 @@
 package net.paploo.diestats.statistics.probabilitydistribution
 
-import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
-//import net.paploo.diestats.statistics.Implicits._
+import net.paploo.diestats.statistics.distribution.{DistributionCompanion, Distribution, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
 import net.paploo.diestats.statistics.frequency.Frequency
 import net.paploo.diestats.statistics.util.{Monoid, Probability}
 
@@ -26,19 +25,19 @@ trait ProbabilityDistribution[A] extends Distribution[A, Probability] with Stati
     ProbabilityDistribution.buildFromNormalized(buffer) //Note: This is technically mutable, but we return as an immutable interface; we could use toMap to be safer, but then we'd be making an unecesssary copy to enforce immutability.
   }
 
-  override def statistics(implicit ord: Ordering[A]): DistributionStatistics[A, Probability] =
+  override def toStatistics(implicit ord: Ordering[A]): DistributionStatistics[A, Probability] =
     DistributionStatistics.fromDistributionPairs(toSeq)
 
-  override def numericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, Probability] =
+  override def toNumericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, Probability] =
     DistributionStatistics.fromNumericDistributionPairs(toSeq)
 }
 
-object ProbabilityDistribution extends ConcreteDistributionCompanion[Probability, ProbabilityDistribution] {
+object ProbabilityDistribution extends DistributionCompanion[Probability, ProbabilityDistribution] {
 
   override def empty[A]: ProbabilityDistribution[A] = ProbabilityDistributionMap.empty
 
   def apply[A](freq: Frequency[A]): ProbabilityDistribution[A] = {
-    val sum = freq.count
+    val sum = freq.sum
     val pairs = freq.toMap.mapValues(m => Probability(m, sum))
     ProbabilityDistribution.buildFrom(pairs)
   }

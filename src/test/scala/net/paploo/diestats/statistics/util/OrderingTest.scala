@@ -16,7 +16,7 @@ class OrderingTest extends SpecTest {
   describe("SeqOrdering") {
     it("should compare two Seq[Char] using the same ordering as String") {
 
-      val seqOrdering: Ordering[Seq[Char]] = Ordering.seqOrdering
+      val seqOrdering: Ordering[Seq[Char]] = Ordering.SeqOrdering
 
       for {
         seq1 <- strings
@@ -38,7 +38,7 @@ class OrderingTest extends SpecTest {
 
     it("should compare two Seq[Char] using the same ordering as sorted Strings") {
 
-      val seqOrdering: Ordering[Seq[Char]] = Ordering.setSeqOrdering
+      val seqOrdering: Ordering[Seq[Char]] = Ordering.SetSeqOrdering
 
       for {
         seq1 <- strings

@@ -27,7 +27,7 @@ object RandomGenerator {
 
   def apply(iterator: Iterator[Probability]): RandomGenerator = new WrappedIteraterRandomGenerator(iterator)
 
-  private[this] class WrappedRandomRandomGenerator(rand: scala.util.Random) extends RandomGenerator {
+  class WrappedRandomRandomGenerator(rand: scala.util.Random) extends RandomGenerator {
 
     def this() = this(new scala.util.Random)
 
@@ -39,7 +39,7 @@ object RandomGenerator {
 
   }
 
-  private[this] class WrappedIteraterRandomGenerator(it: Iterator[Probability]) extends RandomGenerator {
+  class WrappedIteraterRandomGenerator(it: Iterator[Probability]) extends RandomGenerator {
     override def nextProbability(): Probability = it.next()
   }
 

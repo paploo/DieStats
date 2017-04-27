@@ -27,10 +27,11 @@ trait DistributionStatistics[A, N] {
   implicit def frequencyOrdering: Ordering[N] = frequencyNumeric
 
   /**
-    * The pairs of frequency/probability vs. domain.
+    * The pairs of frequency/probability vs. domain, presorted
+    * according to domainOrdering.
     * @return
     */
-  def sortedPairs: Seq[(A, N)]
+  def pairs: Seq[(A, N)]
 
   /**
     * The cumulative distribution pairs.
@@ -111,23 +112,23 @@ object DistributionStatistics {
   private[this] class DefaultDistributionStatistics[A, N](unsortedPairs: Iterable[(A, N)])(implicit override val domainOrdering: Ordering[A], override val frequencyNumeric: FrequencyNumeric[N])
     extends DistributionStatistics[A, N] {
 
-    override val sortedPairs: Seq[(A, N)] = unsortedPairs.toSeq.sortBy(_._1)
+    override val pairs: Seq[(A, N)] = unsortedPairs.toSeq.sortBy(_._1)
 
     override lazy val cumulativePairs: Seq[(A, N)] = CumulativePairs.accumulate(unsortedPairs)
 
-    override val domain: Seq[A] = sortedPairs.map(_._1)
+    override val domain: Seq[A] = pairs.map(_._1)
 
     override val min: A = domain.min
 
     override val max: A = domain.max
 
-    override val sum: N = sortedPairs.foldLeft(frequencyNumeric.zero) {
+    override val sum: N = pairs.foldLeft(frequencyNumeric.zero) {
       (s, pair) => frequencyNumeric.plus(s, pair._2)
     }
 
     override lazy val modes: Seq[A] = {
-      val maxValue = sortedPairs.map(_._2).max(frequencyOrdering)
-      sortedPairs.flatMap { pair =>
+      val maxValue = pairs.map(_._2).max(frequencyOrdering)
+      pairs.flatMap { pair =>
         if (frequencyOrdering.equiv(pair._2, maxValue)) Seq(pair._1)
         else Seq.empty
       }
@@ -147,7 +148,7 @@ object DistributionStatistics {
     override lazy val mean: Double = {
       val frequencySumDouble = frequencyNumeric.toDouble(sum)
       // calculate the weighted values, but normalize by denominator sooner than later
-      sortedPairs.foldLeft(0.0){ (terms, pair) =>
+      pairs.foldLeft(0.0){ (terms, pair) =>
         val weight = frequencyNumeric.toDouble(pair._2) / frequencySumDouble
         val domainDouble = domainNumeric.toDouble(pair._1)
         terms + (weight * domainDouble)
@@ -210,8 +211,8 @@ object DistributionStatistics {
 
 trait StatisticalDistribution[A, N] {
 
-  def statistics(implicit ord: Ordering[A]): DistributionStatistics[A, N]
+  def toStatistics(implicit ord: Ordering[A]): DistributionStatistics[A, N]
 
-  def numericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, N]
+  def toNumericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, N]
 
 }

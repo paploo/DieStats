@@ -5,8 +5,8 @@ object Ordering {
   class SeqOrdering[A](implicit ord: Ordering[A]) extends Ordering[Seq[A]] {
 
     override def compare(x: Seq[A], y: Seq[A]): Int = {
-      val as = seqIterator(x)
-      val bs = seqIterator(y)
+      val as = x.iterator
+      val bs = y.iterator
 
       // Find the first non-matching element.
       while(as.hasNext && bs.hasNext) {
@@ -18,11 +18,8 @@ object Ordering {
       x.length - y.length
     }
 
-    protected def seqIterator(s: Seq[A]): Iterator[A] = s.iterator
-
   }
-
-  def seqOrdering[A](implicit ord: Ordering[A]): Ordering[Seq[A]] = new SeqOrdering[A]()
+  def SeqOrdering[A](implicit ord: Ordering[A]): Ordering[Seq[A]] = new SeqOrdering[A]()
 
   /**
     * For many domains, a Set that allows repeated elements is ideal; this Ordering
@@ -36,16 +33,8 @@ object Ordering {
     * @tparam A
     */
   class SetSeqOrdering[A](implicit ord: Ordering[A]) extends SeqOrdering[A] {
-    override protected def seqIterator(s: Seq[A]): Iterator[A] = s.sorted.iterator
+    override def compare(x: Seq[A], y: Seq[A]): Int = super.compare(x.sorted(ord), y.sorted(ord))
   }
-
-  def setSeqOrdering[A](implicit ord: Ordering[A]): Ordering[Seq[A]] = new SetSeqOrdering[A]()
-
-  trait Implicits {
-
-    implicit def setSeqOrdering[A](implicit ord: Ordering[A]): Ordering[Seq[A]] = Ordering.seqOrdering
-
-  }
-  object Implicits extends Implicits
+  def SetSeqOrdering[A](implicit ord: Ordering[A]): Ordering[Seq[A]] = new SetSeqOrdering[A]()
 
 }

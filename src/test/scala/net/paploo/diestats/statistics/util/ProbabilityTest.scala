@@ -89,6 +89,64 @@ class ProbabilityTest extends SpecTest {
 
   }
 
+  describe("normalization") {
+
+    describe("values") {
+
+      it("should normalize longs") {
+        val norm = Probability.normalizeValues(Seq(50L, 20L, 30L))
+        norm should === (Seq(Probability(1, 2), Probability(1, 5), Probability(3, 10)))
+      }
+
+      it("should normalize probabilities") {
+        val norm = Probability.normalizeValues(Seq(Probability(1, 6), Probability(2, 6)))
+        norm should === (Seq(Probability(1, 3), Probability(2, 3)))
+      }
+
+    }
+
+    describe("pairs") {
+
+      it("should normalize longs") {
+        val norm = Probability.normalizePairs(Seq("x" -> 50L, "p" -> 20L, "c" -> 30L))
+        norm should === (Seq("x" -> Probability(1, 2), "p" -> Probability(1, 5), "c" -> Probability(3, 10)))
+      }
+
+      it("should normalize probabilities") {
+        val norm = Probability.normalizePairs(Seq("q" -> Probability(1, 6), "p" -> Probability(2, 6)))
+        norm should === (Seq("q" -> Probability(1, 3), "p" -> Probability(2, 3)))
+      }
+
+    }
+
+  }
+
+  describe("Equality") {
+
+    val prob = Probability(3L, 8L)
+
+    it("should equality check with Probability") {
+      prob should === (Probability(6L, 16L))
+      prob should !== (Probability(2L, 7L))
+    }
+
+    it("Should equality check with BigDecimal") {
+      prob should === (BigDecimal("0.375"))
+      prob should !== (BigDecimal("0.111"))
+    }
+
+    it("Should equality check with Double") {
+      prob should === (0.375)
+      prob should !== (0.111)
+    }
+
+    it("Should equality check with Float") {
+      prob should === (0.375f)
+      prob should !== (0.111f)
+    }
+
+  }
+
   describe("Implicits") {
 
     val x = Probability(1, 4)

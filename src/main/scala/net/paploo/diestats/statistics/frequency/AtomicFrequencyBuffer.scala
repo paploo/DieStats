@@ -1,8 +1,6 @@
 package net.paploo.diestats.statistics.frequency
 import java.util.concurrent.atomic.AtomicLong
 
-import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
-
 import scala.collection.mutable
 
 /**
@@ -12,6 +10,14 @@ import scala.collection.mutable
 private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
 
   private[this] val frequencies: mutable.Map[A, AtomicLong] = mutable.Map.empty
+
+  override def get(a: A): Option[Long] = frequencies.get(a).map(_.longValue)
+
+  override def sum: Long = frequencies.values.foldLeft(0L)(_.longValue + _.longValue)
+
+  override def size: Int = frequencies.size
+
+  override def domain(implicit ord: Ordering[A]): Seq[A] = frequencies.keys.toSeq.sorted(ord)
 
   override def +=(pair: (A, Long)): FrequencyBuffer[A] = {
     getCounter(pair._1).addAndGet(pair._2)
@@ -27,15 +33,9 @@ private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[
 
   override def ++(pairs: Iterable[(A, Long)]): Frequency[A] = toFrequency ++ pairs
 
-  override def count: Long = frequencies.values.foldLeft(0L)(_.longValue + _.longValue)
-
-  override def get(a: A): Option[Long] = frequencies.get(a).map(_.longValue)
-
-  override def domain(implicit ord: Ordering[A]): Seq[A] = frequencies.keys.toSeq.sorted(ord)
-
   override def copy: FrequencyBuffer[A] = AtomicFrequencyBuffer.buildFrom(this.toMap)
 
-  override def toMap: Map[A, Long] = toFrequency.toMap
+  override def toMap: Map[A, Long] = frequencies.mapValues(_.longValue()).toMap
 
   /**
     * Returns an immutable copy of this frequency buffer.
@@ -49,9 +49,11 @@ private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[
     frequencies.getOrElseUpdate(a, new AtomicLong(0L))
   }
 
+  override def toString(): String = s"FrequencyMap(${this.toMap.mkString(", ")})"
+
 }
 
-object AtomicFrequencyBuffer extends ConcreteDistributionCompanion[Long, AtomicFrequencyBuffer] {
+object AtomicFrequencyBuffer extends FrequencyCompanion[AtomicFrequencyBuffer] {
 
   override def empty[A]: AtomicFrequencyBuffer[A] = new AtomicFrequencyBuffer[A]()
 
@@ -59,6 +61,12 @@ object AtomicFrequencyBuffer extends ConcreteDistributionCompanion[Long, AtomicF
     val buf = empty[A]
     buf ++= pairs
     buf
+  }
+
+  override def buildFromValues[A](values: Iterable[A]): AtomicFrequencyBuffer[A] = {
+    val buffer = AtomicFrequencyBuffer.empty[A]
+    values.foreach(buffer.append)
+    buffer
   }
 
 }

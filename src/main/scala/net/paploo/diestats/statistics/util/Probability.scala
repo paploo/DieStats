@@ -1,25 +1,25 @@
 package net.paploo.diestats.statistics.util
 
-import scala.language.implicitConversions
-
 /**
-  * Wrapper class for Probabilities.
+  * Numeric class for representing Probabilities, which must live in the bounds [0,1].
   *
-  * This would be an AnyVal value class, however its special range constraints
-  * no longer make it a straight replacement anyway.
+  * To give the guarantees that rounding errors do not occur, Probability is implemented
+  * as a rational, with a numerator and denominator.
+  *
+  * Public constructors and operations guarantee that the resulting rational is
+  * in reduced form.
   *
   * Probability seeks to guarantee freedom from rounding errors during computations
   * (which is especially important with the [0,1] bounds), and is guaranteed precise
   * when constructed with a rational number; however construction from inexact decimal
   * representations (e.g. Double) can lead to losses in precision.
   *
-  * The implementation of this guarantee can change. In the current iteration, we represent
-  * probabilities with rational values, however this could change to a BigDecimal in the future.
+  * The implementation of this guarantee can change; however, in the current iteration, we represent
+  * probabilities with rational values.
   *
-  * There is no guarantee that the rational value will be properly reduced (e.g. 6/8 -> 3/4);
-  * however most operations attempt to do so.
+  * TODO: Create a proper rational type and have Probability wrap around it.
   */
-case class Probability(numerator: BigInt, denominator: BigInt) extends Ordered[Probability] {
+case class Probability private[Probability] (numerator: BigInt, denominator: BigInt) extends Ordered[Probability] {
   require(numerator >= 0L && denominator > 0L && numerator <= denominator, s"Probabilities must be in range [0,1], but got $this")
 
   def +(that: Probability): Probability = {
@@ -60,14 +60,18 @@ case class Probability(numerator: BigInt, denominator: BigInt) extends Ordered[P
     thisCommonNumerator compare thatCommonNumerator
   }
 
-  private[Probability] def reduce: Probability =  {
-    val gcd = numerator gcd denominator
-    new Probability(numerator/gcd, denominator/gcd) //Use `new` since companion apply calls reduce!
+  lazy val toDouble: Double = numerator.toDouble / denominator.toDouble
+
+  lazy val toBigDecimal: BigDecimal = BigDecimal(numerator) / BigDecimal(denominator)
+
+  override def equals(obj: Any): Boolean = obj match {
+    case that: Probability => this.numerator == that.numerator && this.denominator == that.denominator
+    case that: BigDecimal => this.toBigDecimal == that
+    case that: Double => this.toDouble == that
+    case that: Float => this.toDouble == that.toDouble
+    case _ => false
   }
 
-  def toDouble: Double = numerator.toDouble / denominator.toDouble
-
-  def toBigDecimal: BigDecimal = BigDecimal(numerator) / BigDecimal(denominator)
 }
 
 object Probability {
@@ -93,20 +97,29 @@ object Probability {
   //private[this] val doubleConversionDenominator = 4503599627370496L // 2**52, the number of bits in the IEEE double significand
   private[this] val doubleConversionDenominator = 6064949221531200L //Use the largest highly composite number I can find, in hopes of getting meaningful reductions sometimes.
 
-  def apply(numerator: BigInt, denominator: BigInt): Probability = new Probability(numerator, denominator).reduce
+  /**
+    * Construct a reduced fraction Probability given a numerator and denominator.
+    * @param numerator
+    * @param denominator
+    * @return The probability, as a reduced fraction.
+    */
+  def apply(numerator: BigInt, denominator: BigInt): Probability = {
+    val gcd = numerator gcd denominator
+    new Probability(numerator / gcd, denominator / gcd) //This is the root creation point, and calls new to do it.
+  }
 
   val zero: Probability = apply(0L, 1L)
 
   val one: Probability = apply(1L, 1L)
 
-  def normalizeValues[N](seq: Iterable[N])(implicit num: Numeric[N]): Seq[Probability] = {
+  def normalizeValues[N](seq: Iterable[N])(implicit num: FrequencyNumeric[N]): Seq[Probability] = {
     val sum: N = seq.foldLeft(num.zero)(num.plus)
-    seq.map(n => Probability(num.toLong(n), num.toLong(sum))).toSeq
+    seq.map(n => num.toProbability(n, sum)).toSeq
   }
 
-  def normalizePairs[A, N](seq: Iterable[(A, N)])(implicit num: Numeric[N]): Seq[(A, Probability)] = {
+  def normalizePairs[A, N](seq: Iterable[(A, N)])(implicit num: FrequencyNumeric[N]): Seq[(A, Probability)] = {
     val sum: N = seq.foldLeft(num.zero)((s, pair) => num.plus(s, pair._2))
-    seq.map(pair => pair._1 -> Probability(num.toLong(pair._2), num.toLong(sum))).toSeq
+    seq.map(pair => pair._1 -> num.toProbability(pair._2, sum)).toSeq
   }
 
   trait ProbabilityOrdering extends Ordering[Probability] {

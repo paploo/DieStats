@@ -1,5 +1,6 @@
 package net.paploo.diestats.statistics.util
 
+@annotation.implicitNotFound(msg = "No implicit Monoid defined for ${A}.")
 trait Monoid[A] {
 
   def concat(x: A, y: A): A
@@ -20,7 +21,7 @@ object Monoid {
     override def concat(x: N, y: N): N = num.plus(x, y)
     override def empty: N = num.zero
   }
-  def additiveMonoid[N](implicit num: Numeric[N]): Monoid[N] = new AdditiveMonoid[N]()
+  def AdditiveMonoid[N](implicit num: Numeric[N]): Monoid[N] = new AdditiveMonoid[N]()
   implicit val AdditiveIntMonoid: Monoid[Int] = new AdditiveMonoid[Int]()
   implicit val AdditiveLongMonoid: Monoid[Long] = new AdditiveMonoid[Long]()
   implicit val AdditiveDoubleMonoid: Monoid[Double] = new AdditiveMonoid[Double]()
@@ -30,7 +31,7 @@ object Monoid {
     override def concat(x: N, y: N): N = num.times(x, y)
     override def empty: N = num.one
   }
-  def multiplicativeMonoid[N](implicit num: Numeric[N]): Monoid[N] = new MultiplicativeMonoid[N]()
+  def MultiplicativeMonoid[N](implicit num: Numeric[N]): Monoid[N] = new MultiplicativeMonoid[N]()
   val MultiplicativeIntMonoid = new MultiplicativeMonoid[Int]()
   val MultiplicativeLongMonoid = new MultiplicativeMonoid[Long]()
   val MultiplicativeDoubleMonoid = new MultiplicativeMonoid[Double]()
@@ -45,21 +46,6 @@ object Monoid {
   class SortedSeqMonoid[A](implicit ord: Ordering[A]) extends SeqMonoid[A] {
     override def concat(x: Seq[A], y: Seq[A]): Seq[A] = super.concat(x, y).sorted
   }
-  def sortedSeqMonoid[A](implicit ord: Ordering[A]): Monoid[Seq[A]] = new SortedSeqMonoid[A]()
-
-//  trait Implicits {
-//    implicit val stringMonoid: Monoid[String] = StringMonoid
-//
-//    // Most of the time, domain operations are done on addition, so we default to addition.
-//    implicit val additiveIntMonoid: Monoid[Int] = Monoid.AdditiveIntMonoid
-//    implicit val additiveLongMonoid: Monoid[Long] = Monoid.AdditiveLongMonoid
-//    implicit val additiveDoubleMonoid: Monoid[Double] = Monoid.AdditiveDoubleMonoid
-//
-//    // Probabilities are more frequently multiplied than added.
-//    implicit val additiveProbabilityMonoid: Monoid[Probability] = Monoid.MultiplicativeProbabilityMonoid
-//
-//    implicit def seqMonoid[A]: Monoid[Seq[A]] = Monoid.seqMonoid
-//  }
-//  object Implicits extends Implicits
+  def SortedSeqMonoid[A](implicit ord: Ordering[A]): Monoid[Seq[A]] = new SortedSeqMonoid[A]()
 
 }

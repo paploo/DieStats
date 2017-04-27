@@ -1,6 +1,6 @@
 package net.paploo.diestats.statistics.distribution
 
-import scala.language.higherKinds
+import scala.language.{higherKinds, implicitConversions}
 
 /**
   * The base trait for discrete distributions over the domain A.
@@ -17,6 +17,13 @@ trait Distribution[A, +B] extends PartialFunction[A, B] {
 
   override def isDefinedAt(a: A): Boolean = get(a).isDefined
 
+  /**
+    * Returns Some(f) where f is the frequency for a valid domain value, otherwise None.
+    *
+    * Distributions should endeavor to specify a zero frequency in order
+    * to return Some(a) for all legal domain values a, otherwise None
+    * will be returned.
+    */
   def get(a: A): Option[B]
 
   /**
@@ -30,6 +37,12 @@ trait Distribution[A, +B] extends PartialFunction[A, B] {
   def pairs(implicit ord: Ordering[A]): Seq[(A, B)] = this.toMap.toSeq.sortBy(_._1)(ord)
 
   /**
+    * The count of the pairs, which is identical to the domain length.
+    * @return
+    */
+  def size: Int
+
+  /**
     * Returns the distribution as a simple Map[A, B]
     */
   def toMap: Map[A, B]
@@ -39,6 +52,30 @@ trait Distribution[A, +B] extends PartialFunction[A, B] {
     */
   def toSeq: Seq[(A, B)] = toMap.toSeq
 
+  /**
+    * The same pairs, regardles sof order, should
+    * produce the same hash code.
+    * @return
+    */
+  override def hashCode(): Int = toMap.hashCode
+
+  /**
+    * Equality for distributions is defined as when their pairs,
+    * in any order, are equivalent; comparison against other
+    * iterables with equivalent pairs results in inequality.
+    * @param obj
+    * @return
+    */
+  override def equals(obj: Any): Boolean = obj match {
+    case dist: Distribution[_, _] => this.toMap == dist.toMap
+    case _ => false
+  }
+}
+
+object Distribution {
+
+  implicit def distributionToIterable[A, B](dist: Distribution[A, B]): Iterable[(A, B)] = dist.toSeq
+
 }
 
 /**
@@ -46,7 +83,7 @@ trait Distribution[A, +B] extends PartialFunction[A, B] {
   * @tparam B The concrete range type.
   * @tparam Repr The representation higher type.
   */
-trait ConcreteDistributionCompanion[B, Repr[_]] {
+trait DistributionCompanion[B, Repr[_]] {
 
   def empty[A]: Repr[A]
 

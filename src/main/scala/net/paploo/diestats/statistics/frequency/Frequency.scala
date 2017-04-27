@@ -1,8 +1,9 @@
 package net.paploo.diestats.statistics.frequency
 
-import net.paploo.diestats.statistics.distribution.{ConcreteDistributionCompanion, Distribution, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
+import net.paploo.diestats.statistics.distribution.{Distribution, DistributionCompanion, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
 import net.paploo.diestats.statistics.probabilitydistribution.{ProbabilityDistribution, ProbabilityDistributionable}
-//import net.paploo.diestats.statistics.util.FrequencyNumeric.Implicits._
+
+import scala.language.higherKinds
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
@@ -28,45 +29,39 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with Prob
     * @param value
     * @return
     */
-  def +:(value: A): Frequency[A] = this + ((value, 1L))
+  def :+(value: A): Frequency[A] = this + ((value, 1L))
 
   /**
     * Appends the list of values, with a frequency count for each instance in the list.
     * @param values
     * @return
     */
-  def ++:(values: Iterable[A]): Frequency[A] = this ++ values.map((_,1L))
+  def :++(values: Iterable[A]): Frequency[A] = this ++ values.map((_,1L))
 
   /**
     * Give the sum total of counts across the domains.
     * @return
     */
-  def count: Long
+  def sum: Long
 
   override def toFrequency: Frequency[A] = this
 
   override def toProbabilityDistribution: ProbabilityDistribution[A] = ProbabilityDistribution(this)
 
-  override def statistics(implicit ord: Ordering[A]): DistributionStatistics[A, Long] =
+  override def toStatistics(implicit ord: Ordering[A]): DistributionStatistics[A, Long] =
     DistributionStatistics.fromDistributionPairs(toSeq)
 
-  override def numericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, Long] =
+  override def toNumericalDomainStatistics(implicit num: Numeric[A]): NumericDistributionStatistics[A, Long] =
     DistributionStatistics.fromNumericDistributionPairs(toSeq)
 }
 
-object Frequency extends ConcreteDistributionCompanion[Long, Frequency] {
+object Frequency extends FrequencyCompanion[Frequency] {
 
   override def empty[A]: Frequency[A] = FrequencyMap.empty
 
   override def buildFrom[A](pairs: Iterable[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(pairs)
 
-  def apply[A](values: A*): Frequency[A] = fromValues(values)
-
-  def fromValues[A](values: Iterable[A]): Frequency[A] = {
-    val buffer = FrequencyBuffer.empty[A]
-    values.foreach(buffer.append)
-    buffer.toFrequency
-  }
+  override def buildFromValues[A](values: Iterable[A]): Frequency[A] = FrequencyMap.buildFromValues(values)
 
 }
 
@@ -76,5 +71,17 @@ object Frequency extends ConcreteDistributionCompanion[Long, Frequency] {
 trait Frequenciable[A] {
 
   def toFrequency: Frequency[A]
+
+}
+
+trait FrequencyCompanion[Repr[_]] extends DistributionCompanion[Long, Repr] {
+
+  def fromValues[A](values: A*): Repr[A] = buildFromValues(values)
+
+  def buildFromValues[A](values: Iterable[A]): Repr[A]
+
+  def emptyWithDomain[A](domain: A*): Repr[A] = buildWithDomain(domain)
+
+  def buildWithDomain[A](domain: Iterable[A]): Repr[A] = buildFrom(domain.map(a => (a, 0L)))
 
 }

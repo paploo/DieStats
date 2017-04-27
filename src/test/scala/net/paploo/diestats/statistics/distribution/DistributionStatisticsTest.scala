@@ -16,7 +16,7 @@ class DistributionStatisticsTest extends SpecTest {
     describe("Basic Properties") {
 
       it("should return the sorted pairs") {
-        stats.sortedPairs should ===(distProps.pairs)
+        stats.pairs should ===(distProps.pairs)
       }
 
       it("should calculate the cumulative pairs") {

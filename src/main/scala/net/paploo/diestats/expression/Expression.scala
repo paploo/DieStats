@@ -1,4 +1,4 @@
-package net.paploo.diestats.expr
+package net.paploo.diestats.expression
 
 /**
   * Base trait for expressions over a domain of type A.

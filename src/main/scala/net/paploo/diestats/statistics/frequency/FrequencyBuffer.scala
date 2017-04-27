@@ -1,7 +1,5 @@
 package net.paploo.diestats.statistics.frequency
 
-import net.paploo.diestats.statistics.distribution.ConcreteDistributionCompanion
-
 /**
   * Base trait of all mutable frequency buffers, defining methods that only affect mutable buffers.
   *
@@ -23,6 +21,10 @@ trait FrequencyBuffer[A] extends Frequency[A] {
     */
   def ++=(pairs: Iterable[(A, Long)]): FrequencyBuffer[A]
 
+  def :+=(value: A): Frequency[A] = this += ((value, 1L))
+
+  def :++=(values: Iterable[A]): Frequency[A] = this ++= values.map((_,1L))
+
   /**
     * Mutably a value with a count of 1.
     * @param value
@@ -41,10 +43,16 @@ trait FrequencyBuffer[A] extends Frequency[A] {
 
 }
 
-object FrequencyBuffer extends ConcreteDistributionCompanion[Long, FrequencyBuffer] {
+object FrequencyBuffer extends FrequencyCompanion[FrequencyBuffer] {
 
   override def empty[A]: FrequencyBuffer[A] = AtomicFrequencyBuffer.empty[A]
 
   override def buildFrom[A](pairs: Iterable[(A, Long)]): FrequencyBuffer[A] = empty ++= pairs
+
+  override def buildFromValues[A](values: Iterable[A]): FrequencyBuffer[A] = {
+    val buffer = FrequencyBuffer.empty[A]
+    values.foreach(buffer.append)
+    buffer
+  }
 
 }

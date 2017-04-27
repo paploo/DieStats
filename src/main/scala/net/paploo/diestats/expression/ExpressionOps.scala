@@ -1,4 +1,4 @@
-package net.paploo.diestats.expr
+package net.paploo.diestats.expression
 
 /**
   * Trait expressing an implementation of operations over expressions on domain A,
