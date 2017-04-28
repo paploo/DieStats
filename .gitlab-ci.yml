@@ -19,8 +19,8 @@ build:
   stage: build
   cache:
     key: "$CI_COMMIT_SHA"
-      paths:
-        - target/
+    paths:
+      - target/
   script:
     - sbt clean compile
 
@@ -28,8 +28,8 @@ test:
   stage: test
   cache:
     key: "$CI_COMMIT_SHA"
-      paths:
-        - target/
+    paths:
+      - target/
   script:
     - sbt test
     
