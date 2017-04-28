@@ -1,3 +1,5 @@
+image: openjdk:8-jdk
+
 before_script:
   - apt-get update -y
   - apt-get install apt-transport-https -y
