@@ -392,7 +392,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
     }
     
     buffer.sum should === (totalInsertions)
-Ø
+
     (0 until bins).foreach { i =>
       assert(buffer.get(i) == (Some(insertionsPerBin)), s"incorrect count for bin index $i")
     }
