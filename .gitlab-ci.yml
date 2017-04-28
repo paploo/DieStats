@@ -15,7 +15,7 @@ before_script:
   - sbt sbt-version
 
 buildAndTest:
-  stage: test
+  stage: package
   cache:
     key: "$CI_COMMIT_SHA"
     paths:
@@ -24,7 +24,7 @@ buildAndTest:
     - sbt clean compile test
     
 package:
-  stage: test
+  stage: package
   when: on_success
   only:
     - master
@@ -38,4 +38,4 @@ package:
       - "$CI_PROJECT_DIR/target/scala-2.12/*.jar"
       - "$CI_PROJECT_DIR/target/scala-2.12/api"
   script:
-    - sbt compile test package doc
+    - sbt clean compile test package doc
