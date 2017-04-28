@@ -1,7 +1,6 @@
 image: openjdk:8-jdk
 
 stages:
-  - test
   - package
   - publish
 
@@ -25,7 +24,7 @@ buildAndTest:
     - sbt clean compile test
     
 package:
-  stage: package
+  stage: test
   when: on_success
   only:
     - master
