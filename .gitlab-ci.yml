@@ -1,5 +1,10 @@
 image: openjdk:8-jdk
 
+stages:
+  - build
+  - test
+  - deploy
+
 before_script:
   - apt-get update -y
   - apt-get install apt-transport-https -y
@@ -11,9 +16,19 @@ before_script:
   - sbt sbt-version
 
 build:
+  stage: build
   script:
     - sbt clean compile
 
 test:
+  stage: test
   script:
     - sbt test
+    
+deploy:
+  stage: deploy
+  when: manual
+  only:
+    - master
+  script:
+    - sbt deploy
