@@ -26,7 +26,7 @@ buildAndTest:
     
 package:
   stage: package
-  when: manual
+  when: on_success
   only:
     - master
   cache:
