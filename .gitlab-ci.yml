@@ -2,7 +2,8 @@ image: openjdk:8-jdk
 
 stages:
   - test
-  - deploy
+  - package
+  - publish
 
 before_script:
   - apt-get update -y
@@ -23,8 +24,8 @@ buildAndTest:
   script:
     - sbt clean compile test
     
-deploy:
-  stage: deploy
+package:
+  stage: package
   when: manual
   only:
     - master
@@ -38,4 +39,4 @@ deploy:
       - "$CI_PROJECT_DIR/target/scala-2.12/*.jar"
       - "$CI_PROJECT_DIR/target/scala-2.12/api"
   script:
-    - sbt compile test doc
+    - sbt compile test package doc
