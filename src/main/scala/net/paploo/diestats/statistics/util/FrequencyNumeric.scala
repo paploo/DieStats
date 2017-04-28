@@ -9,7 +9,7 @@ import scala.math.{Ordering => ScalaOrdering}
   * probability normalization methods.
   * @tparam N
   */
-@annotation.implicitNotFound(msg = "No implicit FrequencyNumeric defined for ${T}.")
+@annotation.implicitNotFound(msg = "No implicit FrequencyNumeric defined for ${N}.")
 trait FrequencyNumeric[N] extends Numeric[N] {
   /**
     * Creates a probability from a numerator and denominator of type N.

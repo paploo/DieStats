@@ -374,15 +374,28 @@ class AtomicFrequencyBufferTest extends SpecTest {
   }
 
   it("should be thread safe") {
+    val parallelization: Int = 16
+    val bins: Int = 10
+    val insertionsPerBinPerThread: Int = 100000
+
+    val insertionsPerThread: Int = bins * insertionsPerBinPerThread
+    val insertionsPerBin: Int = parallelization * insertionsPerBinPerThread
+    val totalInsertions: Int = insertionsPerBin * bins
+
     val buffer = AtomicFrequencyBuffer.empty[Int]
 
-    (0 until 10).par.map { i =>
-      (0 until 100000).map { j =>
-        buffer :+= (i+j)
+    // We need high parallel write to a small set of bins
+    (0 until parallelization).par.map { i =>
+      (0 until insertionsPerThread).map { j =>
+        buffer :+= (j % bins)
       }
     }
     
-    buffer.sum should === (1000000L)
+    buffer.sum should === (totalInsertions)
+Ø
+    (0 until bins).foreach { i =>
+      assert(buffer.get(i) == (Some(insertionsPerBin)), s"incorrect count for bin index $i")
+    }
   }
 
 }
