@@ -17,17 +17,19 @@ before_script:
 
 build:
   stage: build
-  key: "$CI_COMMIT_SHA"
-    paths:
-      - target/
+  cache:
+    key: "$CI_COMMIT_SHA"
+      paths:
+        - target/
   script:
     - sbt clean compile
 
 test:
   stage: test
-  key: "$CI_COMMIT_SHA"
-    paths:
-      - target/
+  cache:
+    key: "$CI_COMMIT_SHA"
+      paths:
+        - target/
   script:
     - sbt test
     
