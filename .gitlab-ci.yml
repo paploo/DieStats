@@ -13,19 +13,9 @@ before_script:
   - apt-get update -y
   - apt-get install sbt -y
   - sbt sbt-version
-
-buildAndTest:
-  stage: package
-  cache:
-    key: "$CI_COMMIT_SHA"
-    paths:
-      - target/
-  script:
-    - sbt clean compile test
     
 package:
   stage: package
-  when: on_success
   only:
     - master
   cache:
