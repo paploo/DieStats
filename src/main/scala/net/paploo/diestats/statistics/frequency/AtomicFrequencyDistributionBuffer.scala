@@ -7,7 +7,7 @@ import scala.collection.mutable
   * Thread safe mutable frequency accumulation buffer.
   * @tparam A The domain type.
   */
-private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[A] {
+private[frequency] final class AtomicFrequencyDistributionBuffer[A] extends FrequencyDistributionBuffer[A] {
 
   private[this] val frequencies: mutable.Map[A, AtomicLong] = mutable.Map.empty
 
@@ -19,28 +19,28 @@ private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[
 
   override def domain(implicit ord: Ordering[A]): Seq[A] = frequencies.keys.toSeq.sorted(ord)
 
-  override def +=(pair: (A, Long)): FrequencyBuffer[A] = {
+  override def +=(pair: (A, Long)): FrequencyDistributionBuffer[A] = {
     getCounter(pair._1).addAndGet(pair._2)
     this
   }
 
-  override def ++=(pairs: Iterable[(A, Long)]): FrequencyBuffer[A] = {
+  override def ++=(pairs: Iterable[(A, Long)]): FrequencyDistributionBuffer[A] = {
     pairs.foreach(pair => this += pair)
     this
   }
 
-  override def +(pair: (A, Long)): Frequency[A] = toFrequency + pair
+  override def +(pair: (A, Long)): FrequencyDistribution[A] = toFrequency + pair
 
-  override def ++(pairs: Iterable[(A, Long)]): Frequency[A] = toFrequency ++ pairs
+  override def ++(pairs: Iterable[(A, Long)]): FrequencyDistribution[A] = toFrequency ++ pairs
 
-  override def copy: FrequencyBuffer[A] = AtomicFrequencyBuffer.buildFrom(this.toMap)
+  override def copy: FrequencyDistributionBuffer[A] = AtomicFrequencyDistributionBuffer.buildFrom(this.toMap)
 
   override def toMap: Map[A, Long] = frequencies.mapValues(_.longValue()).toMap
 
   /**
     * Returns an immutable copy of this frequency buffer.
     */
-  override def toFrequency: Frequency[A] = Frequency.buildFrom(this.toMap)
+  override def toFrequency: FrequencyDistribution[A] = FrequencyDistribution.buildFrom(this.toMap)
 
   /**
     * Get the counter, creating it if necessary, in a thread safe way.
@@ -53,18 +53,18 @@ private[frequency] final class AtomicFrequencyBuffer[A] extends FrequencyBuffer[
 
 }
 
-object AtomicFrequencyBuffer extends FrequencyCompanion[AtomicFrequencyBuffer] {
+object AtomicFrequencyDistributionBuffer extends FrequencyDistributionCompanion[AtomicFrequencyDistributionBuffer] {
 
-  override def empty[A]: AtomicFrequencyBuffer[A] = new AtomicFrequencyBuffer[A]()
+  override def empty[A]: AtomicFrequencyDistributionBuffer[A] = new AtomicFrequencyDistributionBuffer[A]()
 
-  override def buildFrom[A](pairs: Iterable[(A, Long)]): AtomicFrequencyBuffer[A] = {
+  override def buildFrom[A](pairs: Iterable[(A, Long)]): AtomicFrequencyDistributionBuffer[A] = {
     val buf = empty[A]
     buf ++= pairs
     buf
   }
 
-  override def buildFromValues[A](values: Iterable[A]): AtomicFrequencyBuffer[A] = {
-    val buffer = AtomicFrequencyBuffer.empty[A]
+  override def buildFromValues[A](values: Iterable[A]): AtomicFrequencyDistributionBuffer[A] = {
+    val buffer = AtomicFrequencyDistributionBuffer.empty[A]
     values.foreach(buffer.append)
     buffer
   }

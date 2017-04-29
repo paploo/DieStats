@@ -2,54 +2,54 @@ package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.test.SpecTest
 
-class FrequencyMapTest extends SpecTest {
+class FrequencyDistributionMapTest extends SpecTest {
 
   describe("object methods") {
 
     it("should construct an empty frequency") {
-      val freq: FrequencyMap[String] = FrequencyMap.empty[String]
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap.empty[String]
       freq.sum should === (0L)
       freq.domain should === (Seq.empty[String])
       freq.pairs should === (Seq.empty[(String, Long)])
     }
 
     it("should construct an empty frequency from apply with no args") {
-      val freq: FrequencyMap[String] = FrequencyMap[String]()
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap[String]()
       freq.sum should === (0L)
       freq.domain should === (Seq.empty[String])
       freq.pairs should === (Seq.empty[(String, Long)])
     }
 
     it("should construct from pairs") {
-      val freq: FrequencyMap[String] = FrequencyMap("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("should construct from values") {
-      val freq: FrequencyMap[String] = FrequencyMap.fromValues("alpha", "beta", "alpha", "gamma")
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap.fromValues("alpha", "beta", "alpha", "gamma")
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("Should build from an iterable of pairs") {
-      val freq: FrequencyMap[String] = FrequencyMap.buildFrom(Seq("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L))
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap.buildFrom(Seq("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L))
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("should build an iterable of values") {
-      val freq: FrequencyMap[String] = FrequencyMap.buildFromValues(Seq("alpha", "beta", "alpha", "gamma"))
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap.buildFromValues(Seq("alpha", "beta", "alpha", "gamma"))
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("should create empty with a domain") {
-      val freq: FrequencyMap[String] = FrequencyMap.emptyWithDomain("alpha", "beta", "gamma")
+      val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap.emptyWithDomain("alpha", "beta", "gamma")
       freq.sum should === (0L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
     }
@@ -58,7 +58,7 @@ class FrequencyMapTest extends SpecTest {
 
   describe("implicit iterable conversion") {
 
-    val freq: FrequencyMap[String] = FrequencyMap("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
+    val freq: FrequencyDistributionMap[String] = FrequencyDistributionMap("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
     val freqSeq = Seq("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
 
     it("should implicitly convert to an iterable") {
@@ -70,7 +70,7 @@ class FrequencyMapTest extends SpecTest {
 
   describe("basic properties") {
 
-    val testFreq: FrequencyMap[String] = FrequencyMap("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    val testFreq: FrequencyDistributionMap[String] = FrequencyDistributionMap("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
     val reverseOrdering: Ordering[String] = Ordering.String.reverse
 
     describe("get") {
@@ -124,7 +124,7 @@ class FrequencyMapTest extends SpecTest {
 
   describe("accumulation") {
 
-    val testFreq: FrequencyMap[String] = FrequencyMap("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    val testFreq: FrequencyDistributionMap[String] = FrequencyDistributionMap("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
 
     describe("+") {
 
@@ -174,12 +174,12 @@ class FrequencyMapTest extends SpecTest {
 
       it("should be identity on an empty set") {
         //TODO: On mutable frequencies, we should test that mutating what's returned from this doesn't mutate the original!
-        val freq = testFreq ++ Frequency.empty[String]
+        val freq = testFreq ++ FrequencyDistribution.empty[String]
         freq should === (testFreq)
       }
 
       it("should accept both new and existing domain values") {
-        val freq = testFreq ++ Frequency("alpha" -> 14L, "epsilon" -> 7L)
+        val freq = testFreq ++ FrequencyDistribution("alpha" -> 14L, "epsilon" -> 7L)
         freq.get("alpha") should === (Some(24L))
         freq.get("epsilon") should === (Some(7L))
       }
@@ -190,7 +190,7 @@ class FrequencyMapTest extends SpecTest {
       }
 
       it("should not alter the original frequency") {
-        testFreq ++ Frequency("alpha" -> 14L)
+        testFreq ++ FrequencyDistribution("alpha" -> 14L)
         testFreq.get("alpha") should === (Some(10L))
         testFreq.sum should === (100L)
       }
@@ -230,7 +230,7 @@ class FrequencyMapTest extends SpecTest {
 
   describe("conversion") {
 
-    val testFreq: FrequencyMap[String] = FrequencyMap("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    val testFreq: FrequencyDistributionMap[String] = FrequencyDistributionMap("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
 
     describe("toMap") {
 
@@ -274,7 +274,7 @@ class FrequencyMapTest extends SpecTest {
       }
 
       it("Should produce a numerical domain statistics object") {
-        val numFreq = FrequencyMap(2 -> 10L, 4 -> 30L)
+        val numFreq = FrequencyDistributionMap(2 -> 10L, 4 -> 30L)
         val numStats = numFreq.toNumericalDomainStatistics
         numStats.pairs should === (numFreq.pairs) //They should be identical, including sorting
         numStats.sum should === (40L)

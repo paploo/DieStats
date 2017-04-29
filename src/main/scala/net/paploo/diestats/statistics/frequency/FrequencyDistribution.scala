@@ -7,36 +7,40 @@ import scala.language.higherKinds
 
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
+  *
+  * The immutable collection alteration methods come in two flavors:
+  * 1. Addition of counts via pairs use `+` and `++`.
+  * 2. Single increments of a count for a domain value prepend colon, e.g. `:+` and `:++`.
   * @tparam A The domain type.
   */
-trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with ProbabilityDistributionable[A] with StatisticalDistribution[A, Long] {
+trait FrequencyDistribution[A] extends Distribution[A,  Long] with FrequencyDistributionable[A] with ProbabilityDistributionable[A] with StatisticalDistribution[A, Long] {
 
   /**
     * Returns a new Frequency with the given count added to the pair.
     * @param pair
     * @return
     */
-  def +(pair: (A, Long)): Frequency[A]
+  def +(pair: (A, Long)): FrequencyDistribution[A]
 
   /**
     * Returns a new Frequency with the given frequencies added in.
     * @param pairs
     */
-  def ++(pairs: Iterable[(A, Long)]): Frequency[A]
+  def ++(pairs: Iterable[(A, Long)]): FrequencyDistribution[A]
 
   /**
     * Appends a value with a count of 1.
     * @param value
     * @return
     */
-  def :+(value: A): Frequency[A] = this + ((value, 1L))
+  def :+(value: A): FrequencyDistribution[A] = this + ((value, 1L))
 
   /**
     * Appends the list of values, with a frequency count for each instance in the list.
     * @param values
     * @return
     */
-  def :++(values: Iterable[A]): Frequency[A] = this ++ values.map((_,1L))
+  def :++(values: Iterable[A]): FrequencyDistribution[A] = this ++ values.map((_,1L))
 
   /**
     * Give the sum total of counts across the domains.
@@ -44,7 +48,7 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with Prob
     */
   def sum: Long
 
-  override def toFrequency: Frequency[A] = this
+  override def toFrequency: FrequencyDistribution[A] = this
 
   override def toProbabilityDistribution: ProbabilityDistribution[A] = ProbabilityDistribution.buildNormalizedFrom(this)
 
@@ -55,26 +59,26 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with Prob
     DistributionStatistics.fromNumericDistributionPairs(toSeq)
 }
 
-object Frequency extends FrequencyCompanion[Frequency] {
+object FrequencyDistribution extends FrequencyDistributionCompanion[FrequencyDistribution] {
 
-  override def empty[A]: Frequency[A] = FrequencyMap.empty
+  override def empty[A]: FrequencyDistribution[A] = FrequencyDistributionMap.empty
 
-  override def buildFrom[A](pairs: Iterable[(A, Long)]): Frequency[A] = FrequencyMap.buildFrom(pairs)
+  override def buildFrom[A](pairs: Iterable[(A, Long)]): FrequencyDistribution[A] = FrequencyDistributionMap.buildFrom(pairs)
 
-  override def buildFromValues[A](values: Iterable[A]): Frequency[A] = FrequencyMap.buildFromValues(values)
+  override def buildFromValues[A](values: Iterable[A]): FrequencyDistribution[A] = FrequencyDistributionMap.buildFromValues(values)
 
 }
 
 /**
   * A common trait for all values that can be transformed into a Frequency.
   */
-trait Frequenciable[A] {
+trait FrequencyDistributionable[A] {
 
-  def toFrequency: Frequency[A]
+  def toFrequency: FrequencyDistribution[A]
 
 }
 
-trait FrequencyCompanion[Repr[_]] extends DistributionCompanion[Long, Repr] {
+trait FrequencyDistributionCompanion[Repr[_]] extends DistributionCompanion[Long, Repr] {
 
   def fromValues[A](values: A*): Repr[A] = buildFromValues(values)
 

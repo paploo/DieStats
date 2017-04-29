@@ -2,54 +2,54 @@ package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.test.SpecTest
 
-class AtomicFrequencyBufferTest extends SpecTest {
+class AtomicFrequencyDistributionBufferTest extends SpecTest {
 
   describe("object methods") {
 
     it("should construct an empty frequency") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer.empty[String]
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer.empty[String]
       freq.sum should === (0L)
       freq.domain should === (Seq.empty[String])
       freq.pairs should === (Seq.empty[(String, Long)])
     }
 
     it("should construct an empty frequency from apply with no args") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer[String]()
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer[String]()
       freq.sum should === (0L)
       freq.domain should === (Seq.empty[String])
       freq.pairs should === (Seq.empty[(String, Long)])
     }
 
     it("should construct from pairs") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("should construct from values") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer.fromValues("alpha", "beta", "alpha", "gamma")
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer.fromValues("alpha", "beta", "alpha", "gamma")
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("Should build from an iterable of pairs") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer.buildFrom(Seq("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L))
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer.buildFrom(Seq("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L))
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("should build an iterable of values") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer.buildFromValues(Seq("alpha", "beta", "alpha", "gamma"))
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer.buildFromValues(Seq("alpha", "beta", "alpha", "gamma"))
       freq.sum should === (4L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
       freq.pairs should === (Seq(("alpha", 2L), ("beta", 1L), ("gamma", 1L)))
     }
 
     it("should create empty with a domain") {
-      val freq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer.emptyWithDomain("alpha", "beta", "gamma")
+      val freq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer.emptyWithDomain("alpha", "beta", "gamma")
       freq.sum should === (0L)
       freq.domain should === (Seq("alpha", "beta", "gamma"))
     }
@@ -58,7 +58,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
 
   describe("implicit iterable conversion") {
 
-    def freq(): AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
+    def freq(): AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
     val freqSeq = Seq("alpha" -> 2L, "beta" -> 1L, "gamma" -> 1L)
 
     it("should implicitly convert to an iterable") {
@@ -70,7 +70,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
 
   describe("basic properties") {
 
-    def testFreq(): AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    def testFreq(): AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
     val reverseOrdering: Ordering[String] = Ordering.String.reverse
 
     describe("get") {
@@ -124,7 +124,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
 
   describe("accumulation") {
 
-    def testFreq(): AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    def testFreq(): AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
 
     describe("+") {
 
@@ -161,12 +161,12 @@ class AtomicFrequencyBufferTest extends SpecTest {
     describe("++") {
 
       it("should be identity on an empty set") {
-        val freq = testFreq() ++ Frequency.empty[String]
+        val freq = testFreq() ++ FrequencyDistribution.empty[String]
         freq should === (testFreq())
       }
 
       it("should accept both new and existing domain values") {
-        val freq = testFreq() ++ Frequency("alpha" -> 14L, "epsilon" -> 7L)
+        val freq = testFreq() ++ FrequencyDistribution("alpha" -> 14L, "epsilon" -> 7L)
         freq.get("alpha") should === (Some(24L))
         freq.get("epsilon") should === (Some(7L))
       }
@@ -178,8 +178,8 @@ class AtomicFrequencyBufferTest extends SpecTest {
 
       it("Concat on empty shouldn't return a reference to the original mutable frequency") {
         val originalFreq = testFreq()
-        val freq = originalFreq ++ Frequency.empty[String]
-        originalFreq ++ Frequency("alpha" -> 14L, "epsilon" -> 7L)
+        val freq = originalFreq ++ FrequencyDistribution.empty[String]
+        originalFreq ++ FrequencyDistribution("alpha" -> 14L, "epsilon" -> 7L)
         freq should === (testFreq())
         originalFreq should === (testFreq())
       }
@@ -228,7 +228,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
   describe("mutable accumulation") {
 
     //It's important to use def so we get a new one each time we call it.
-    def testFreq(): AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    def testFreq(): AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
 
     describe("+=") {
 
@@ -270,13 +270,13 @@ class AtomicFrequencyBufferTest extends SpecTest {
 
       it("should be identity on an empty set") {
         val freq = testFreq()
-        freq ++= Frequency.empty[String]
+        freq ++= FrequencyDistribution.empty[String]
         freq should === (testFreq())
       }
 
       it("should accept both new and existing domain values") {
         val freq = testFreq()
-        freq ++= Frequency("alpha" -> 14L, "epsilon" -> 7L)
+        freq ++= FrequencyDistribution("alpha" -> 14L, "epsilon" -> 7L)
         freq.get("alpha") should === (Some(24L))
         freq.get("epsilon") should === (Some(7L))
       }
@@ -318,7 +318,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
 
   describe("conversion") {
 
-    val testFreq: AtomicFrequencyBuffer[String] = AtomicFrequencyBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
+    val testFreq: AtomicFrequencyDistributionBuffer[String] = AtomicFrequencyDistributionBuffer("alpha" -> 10L, "beta" -> 40L, "gamma" -> 20L, "delta" -> 30L)
 
     describe("toMap") {
 
@@ -362,7 +362,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
       }
 
       it("Should produce a numerical domain statistics object") {
-        val numFreq = AtomicFrequencyBuffer(2 -> 10L, 4 -> 30L)
+        val numFreq = AtomicFrequencyDistributionBuffer(2 -> 10L, 4 -> 30L)
         val numStats = numFreq.toNumericalDomainStatistics
         numStats.pairs should === (numFreq.pairs) //They should be identical, including sorting
         numStats.sum should === (40L)
@@ -382,7 +382,7 @@ class AtomicFrequencyBufferTest extends SpecTest {
     val insertionsPerBin: Int = parallelization * insertionsPerBinPerThread
     val totalInsertions: Int = insertionsPerBin * bins
 
-    val buffer = AtomicFrequencyBuffer.empty[Int]
+    val buffer = AtomicFrequencyDistributionBuffer.empty[Int]
 
     // We need high parallel write to a small set of bins
     (0 until parallelization).par.map { i =>
