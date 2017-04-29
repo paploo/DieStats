@@ -1,5 +1,4 @@
 package net.paploo.diestats.statistics.probabilitydistribution
-import net.paploo.diestats.statistics.distribution.DistributionCompanion
 import net.paploo.diestats.statistics.util.Probability
 
 /**
@@ -17,14 +16,11 @@ private[probabilitydistribution] final class ProbabilityDistributionMap[A](norma
 
   override def toProbabilityDistribution: ProbabilityDistribution[A] = this
 
+  override def toString(): String = s"ProbabilityDistributionMap(${this.toMap.mkString(", ")})"
 }
 
-object ProbabilityDistributionMap extends DistributionCompanion[Probability, ProbabilityDistributionMap] {
+object ProbabilityDistributionMap extends ProbabilityDistributionCompanion[ProbabilityDistributionMap] {
 
-  override def empty[A]: ProbabilityDistributionMap[A] = new ProbabilityDistributionMap(Map.empty)
-
-  override def buildFrom[A](pairs: Iterable[(A, Probability)]): ProbabilityDistributionMap[A] = new ProbabilityDistributionMap(pairs.toMap)
-
-  private[probabilitydistribution] def buildFromNormalized[A](pairs: Iterable[(A, Probability)]): ProbabilityDistributionMap[A] = new ProbabilityDistributionMap(pairs.toMap)
+  override private[probabilitydistribution] def buildFromNormalized[A](pairs: Iterable[(A, Probability)]): ProbabilityDistributionMap[A] = new ProbabilityDistributionMap(pairs.toMap)
 
 }

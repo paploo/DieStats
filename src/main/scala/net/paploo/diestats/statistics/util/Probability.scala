@@ -1,5 +1,7 @@
 package net.paploo.diestats.statistics.util
 
+import scala.collection.immutable.ListMap
+
 /**
   * Numeric class for representing Probabilities, which must live in the bounds [0,1].
   *
@@ -105,6 +107,7 @@ object Probability {
     */
   def apply(numerator: BigInt, denominator: BigInt): Probability = {
     val gcd = numerator gcd denominator
+    require(gcd != 0, s"Cannot construct probability for Probability($numerator, $denominator)")
     new Probability(numerator / gcd, denominator / gcd) //This is the root creation point, and calls new to do it.
   }
 
@@ -112,14 +115,32 @@ object Probability {
 
   val one: Probability = apply(1L, 1L)
 
-  def normalizeValues[N](seq: Iterable[N])(implicit num: FrequencyNumeric[N]): Seq[Probability] = {
-    val sum: N = seq.foldLeft(num.zero)(num.plus)
-    seq.map(n => num.toProbability(n, sum)).toSeq
+  /**
+    * Normalizes a sequence of values, maintaining sequence order.
+    */
+  def normalizeValues[N](seq: Iterable[N])(implicit num: FrequencyNumeric[N]): Iterable[Probability] = {
+    require(seq.nonEmpty, s"Cannot normalize; Normalization on an empty set of pairs is undefined, on $seq")
+    val sumN: N = seq.foldLeft(num.zero)(num.plus)
+    require(num.gt(sumN, num.zero), s"Cannot normalize pairs, got a zero sum $sumN with implicit numeric $num on $seq")
+    seq.map(n => num.toProbability(n, sumN))
   }
 
-  def normalizePairs[A, N](seq: Iterable[(A, N)])(implicit num: FrequencyNumeric[N]): Seq[(A, Probability)] = {
-    val sum: N = seq.foldLeft(num.zero)((s, pair) => num.plus(s, pair._2))
-    seq.map(pair => pair._1 -> num.toProbability(pair._2, sum)).toSeq
+  /**
+    * Normalizes a sequence of values, mapped by their domain.
+    *
+    * This guarantees accumulation on the domain, but returns a Map with no guaranteed ordering.
+    */
+  def normalizePairs[A, N](seq: Iterable[(A, N)])(implicit num: FrequencyNumeric[N]): Map[A, Probability] = {
+    require(seq.nonEmpty, s"Cannot normalize; Normalization on an empty set of pairs is undefined, on $seq")
+
+    val sumN: N = seq.foldLeft(num.zero)((s, pair) => num.plus(s, pair._2))
+    require(num.gt(sumN, num.zero), s"Cannot normalize pairs, got a zero sum $sumN with implicit numeric $num on $seq")
+
+    seq.foldLeft(Map.empty[A, Probability]) { (memo, pair) =>
+      val oldProb = memo.getOrElse(pair._1, Probability.zero)
+      val newProb = oldProb + num.toProbability(pair._2, sumN)
+      memo.updated(pair._1, newProb)
+    }
   }
 
   trait ProbabilityOrdering extends Ordering[Probability] {

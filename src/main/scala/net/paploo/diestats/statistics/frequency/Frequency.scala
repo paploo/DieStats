@@ -46,7 +46,7 @@ trait Frequency[A] extends Distribution[A, Long] with Frequenciable[A] with Prob
 
   override def toFrequency: Frequency[A] = this
 
-  override def toProbabilityDistribution: ProbabilityDistribution[A] = ProbabilityDistribution(this)
+  override def toProbabilityDistribution: ProbabilityDistribution[A] = ProbabilityDistribution.buildNormalizedFrom(this)
 
   override def toStatistics(implicit ord: Ordering[A]): DistributionStatistics[A, Long] =
     DistributionStatistics.fromDistributionPairs(toSeq)

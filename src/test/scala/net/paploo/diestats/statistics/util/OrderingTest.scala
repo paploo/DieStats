@@ -34,26 +34,4 @@ class OrderingTest extends SpecTest {
 
   }
 
-  describe("SetSeqOrdering") {
-
-    it("should compare two Seq[Char] using the same ordering as sorted Strings") {
-
-      val seqOrdering: Ordering[Seq[Char]] = Ordering.SetSeqOrdering
-
-      for {
-        seq1 <- strings
-        seq2 <- strings
-      } {
-        val str1 = seq1.sorted.mkString //Sort the seq in character order.
-        val str2 = seq2.sorted.mkString //Sort the seq in character order.
-        val seqOrder = seqOrdering.compare(seq1, seq2)
-        val strOrder = str1 compare str2
-        assert(Numeric.IntIsIntegral.signum(seqOrder) == Numeric.IntIsIntegral.signum(strOrder),
-               s"(Expected ${Seq(seq1, seq2).sorted(seqOrdering)} to be in the order ${Seq(str1, str2).sorted})")
-      }
-
-    }
-
-  }
-
 }

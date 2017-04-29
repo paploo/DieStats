@@ -109,12 +109,17 @@ class ProbabilityTest extends SpecTest {
 
       it("should normalize longs") {
         val norm = Probability.normalizePairs(Seq("x" -> 50L, "p" -> 20L, "c" -> 30L))
-        norm should === (Seq("x" -> Probability(1, 2), "p" -> Probability(1, 5), "c" -> Probability(3, 10)))
+        norm should === (Map("x" -> Probability(1, 2), "p" -> Probability(1, 5), "c" -> Probability(3, 10)))
       }
 
       it("should normalize probabilities") {
         val norm = Probability.normalizePairs(Seq("q" -> Probability(1, 6), "p" -> Probability(2, 6)))
-        norm should === (Seq("q" -> Probability(1, 3), "p" -> Probability(2, 3)))
+        norm should === (Map("q" -> Probability(1, 3), "p" -> Probability(2, 3)))
+      }
+
+      it("should aggregate on domain during normalization") {
+        val norm = Probability.normalizePairs(Seq("p" -> Probability(1,3), "q" -> Probability(1, 6), "p" -> Probability(2, 6)))
+        norm should === (Map("p" -> Probability(4, 5), "q" -> Probability(1, 5)))
       }
 
     }

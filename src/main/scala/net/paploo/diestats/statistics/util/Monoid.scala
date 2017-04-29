@@ -41,7 +41,7 @@ object Monoid {
     override def concat(x: Seq[A], y: Seq[A]): Seq[A] = x ++ y
     override def empty: Seq[A] = Vector.empty[A]
   }
-  implicit def seqMonoid[A]: Monoid[Seq[A]] = new SeqMonoid[A]()
+  implicit def SeqMonoid[A]: Monoid[Seq[A]] = new SeqMonoid[A]()
 
   class SortedSeqMonoid[A](implicit ord: Ordering[A]) extends SeqMonoid[A] {
     override def concat(x: Seq[A], y: Seq[A]): Seq[A] = super.concat(x, y).sorted
