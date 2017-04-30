@@ -9,7 +9,9 @@ trait RandomGenerator {
 
 object RandomGenerator {
 
-  def apply(): RandomGenerator = new WrappedRandomRandomGenerator()
+  implicit val default: RandomGenerator = new WrappedRandomRandomGenerator()
+
+  def apply(): RandomGenerator = default
 
   def apply(seed: Long): RandomGenerator = new WrappedRandomRandomGenerator(seed)
 
@@ -20,14 +22,25 @@ object RandomGenerator {
   /**
     * Creates a random generator with the iterable sequence of values.
     *
-    * Can be used to generate values using a pre-made list of values, or event
+    * Can be used to generate values using a pre-made list of values, or even
     * by using an infinite stream.
     */
-  def apply(iterable: Iterable[Probability]): RandomGenerator = new WrappedIteraterRandomGenerator(iterable.iterator)
+  def apply(iterable: Iterable[Probability]): RandomGenerator = apply(iterable.iterator)
 
-  def apply(iterator: Iterator[Probability]): RandomGenerator = new WrappedIteraterRandomGenerator(iterator)
+  def apply(iterator: Iterator[Probability]): RandomGenerator = new RandomGenerator {
+    override def nextProbability(): Probability = iterator.next()
+  }
 
-  class WrappedRandomRandomGenerator(rand: scala.util.Random) extends RandomGenerator {
+  /**
+    * Creates a single-valued generator. This is most useful for testing.
+    * @param value
+    * @return
+    */
+  def apply(value: Probability): RandomGenerator = new RandomGenerator {
+    override def nextProbability(): Probability = value
+  }
+
+  class WrappedRandomRandomGenerator(rand: scala.util.Random)    extends RandomGenerator {
 
     def this() = this(new scala.util.Random)
 
@@ -35,12 +48,11 @@ object RandomGenerator {
 
     def this(rand: java.util.Random) = this(new scala.util.Random(rand))
 
-    override def nextProbability(): Probability = Probability(rand.nextDouble())
-
-  }
-
-  class WrappedIteraterRandomGenerator(it: Iterator[Probability]) extends RandomGenerator {
-    override def nextProbability(): Probability = it.next()
+    /**
+      * Gives a probability from 0 (inclusive) to 1 (exclusive).
+      * @return
+      */
+    override def nextProbability(): Probability = Probability(rand.nextLong, java.lang.Long.MAX_VALUE)
   }
 
 }

@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
-initialCommands in console += "import net.paploo.diestats._;"
+//initialCommands in console += "import net.paploo.diestats._;"
 
 scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
 

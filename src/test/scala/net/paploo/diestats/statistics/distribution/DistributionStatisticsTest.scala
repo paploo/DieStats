@@ -1,6 +1,6 @@
 package net.paploo.diestats.statistics.distribution
 
-import net.paploo.diestats.statistics.util.Probability
+import net.paploo.diestats.statistics.util.{Probability, RandomGenerator}
 import net.paploo.diestats.test.{SpecTest, TestBinomialDistributionFourTrialsOfOneOverFour}
 
 class DistributionStatisticsTest extends SpecTest {
@@ -116,18 +116,65 @@ class DistributionStatisticsTest extends SpecTest {
       ))
     }
 
-    it("should return the lowest value at the 0th percentile") {
-      stats.percentile(Probability.zero) should === (15L)
+    describe("percentile") {
+
+      it("should return the lowest value at the 0th percentile") {
+        stats.percentile(Probability.zero) should ===(15L)
+      }
+
+      it("should return the highest value at the 100th percentile") {
+        stats.percentile(Probability.one) should ===(50L)
+      }
+
+      it("should calculate the percentile inclusive to the right-end of the percentile") {
+        stats.percentile(Probability(39, 100)) should ===(20L)
+        stats.percentile(Probability(40, 100)) should ===(20L)
+        stats.percentile(Probability(41, 100)) should ===(35L)
+      }
+
     }
 
-    it("should return the highest value at the 100th percentile") {
-      stats.percentile(Probability.one) should === (50L)
+    describe("percentileLeft") {
+
+      it("should return the lowest value at the 0th percentile") {
+        stats.percentile(Probability.zero) should ===(15L)
+      }
+
+      it("should return the highest value at the 100th percentile") {
+        stats.percentile(Probability.one) should ===(50L)
+      }
+
+      it("should calculate the percentile inclusive to the right-end of the percentile") {
+        stats.percentile(Probability(39, 100)) should ===(20L)
+        stats.percentile(Probability(40, 100)) should ===(35L) //This is the big difference, we aren't right-side inclusive!
+        stats.percentile(Probability(41, 100)) should ===(35L)
+      }
+
     }
 
-    it("should calculate the percentile inclusive to the right-end of the percentile") {
-      stats.percentile(Probability(39, 100)) should === (20L)
-      stats.percentile(Probability(40, 100)) should === (20L)
-      stats.percentile(Probability(41, 100)) should === (35L)
+  }
+
+  describe("random") {
+
+    val stats = DistributionStatistics.fromDistributionPairs(
+      // From https://en.wikipedia.org/wiki/Percentile
+      Seq(
+        "A" -> 1L,
+        "B" -> 2L,
+        "C" -> 2L,
+        "D" -> 0L
+      )
+    )
+
+    it("should generate the expected values") {
+
+      val values = (0 until 5).map { i =>
+        implicit val rand = RandomGenerator(Probability(i, 5))
+        stats.selectRandom
+      }
+
+      values should === ("A", "B", "B", "C", "C")
+
     }
 
   }

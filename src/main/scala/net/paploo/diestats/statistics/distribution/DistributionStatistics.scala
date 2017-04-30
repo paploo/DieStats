@@ -66,9 +66,39 @@ trait DistributionStatistics[A, N] {
 
   def median: A
 
+  /**
+    * Percentile, calculated according to the nearest rank method (https://en.wikipedia.org/wiki/Percentile).
+    *
+    * The percentage of values less than or equal to the returned value.
+    *
+    * This method has "right" bias, such that percentile is well defined for 0 < p <= 1;
+    * however we also lump 0 in such that it matches the lowest value.
+    *
+    * @param p
+    * @return
+    */
   def percentile(p: Probability): A
 
-  def selectRandom(implicit rand: RandomGenerator): A = percentile(rand.nextProbability())
+  /**
+    * Percentile, calculated with a "left" bias, where percentile is well defined for 0 <= p < 1.
+    *
+    * The percentage of values less than, but not equal to, the returned value.
+    *
+    * This is not as common of a definition, but is useful in applications such as the calculation
+    * of a random value from a random number generator.
+    *
+    * @param p
+    * @return
+    */
+  def percentileLeft(p: Probability): A
+
+  /**
+    * Selects a random value according to this distribution.
+    *
+    * @param rand
+    * @return
+    */
+  def selectRandom(implicit rand: RandomGenerator): A = percentileLeft(rand.nextProbability())
 }
 
 /**
@@ -138,6 +168,10 @@ object DistributionStatistics {
 
     override def percentile(p: Probability): A = cumulativePairs.find { pair =>
       p <= frequencyNumeric.toProbability(pair._2, sum)
+    }.get._1
+
+    override def percentileLeft(p: Probability): A = cumulativePairs.find { pair =>
+      p < frequencyNumeric.toProbability(pair._2, sum)
     }.get._1
 
   }
