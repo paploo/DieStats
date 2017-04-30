@@ -108,6 +108,7 @@ object ExpressionEvaluator {
       override def takeLower(n: Int, exprs: Iterable[Expression[Int]]): ProbabilityDistribution[Int] = ???
 
       override def takeUpper(n: Int, exprs: Iterable[Expression[Int]]): ProbabilityDistribution[Int] = ???
+
     }
 
   }
