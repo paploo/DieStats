@@ -52,7 +52,13 @@ object RandomGenerator {
       * Gives a probability from 0 (inclusive) to 1 (exclusive).
       * @return
       */
-    override def nextProbability(): Probability = Probability(rand.nextLong, java.lang.Long.MAX_VALUE)
+    override def nextProbability(): Probability = {
+      val numerator = BigInt(rand.nextLong()) + minLong
+      Probability(numerator, countOfLongs)
+    }
+
+    private[this] val minLong = BigInt(java.lang.Long.MAX_VALUE)
+    private[this] val countOfLongs = BigInt(java.lang.Long.MAX_VALUE) - BigInt(java.lang.Long.MIN_VALUE) + BigInt(1)
   }
 
 }

@@ -8,22 +8,30 @@ package net.paploo.diestats.expression
   *
   * Example contexts include evalutation to ProbabilityDistributions, Statistics, or Randomly Generated Values.
   *
-  * @tparam A The expression domain.
-  * @tparam R The evaluation result type.
+  * @tparam A The expression domain type.
   */
-trait Expression[A, R] extends (ExpressionOps[A, R] => R) {
+trait Expression[A] {
 
-  def +(that: Expression[A, R]): Expression[A, R] = Expression.AST.Plus(this, that)
+  /**
+    * Evaluates this expression node to a value of type R using the given evaluator.
+    *
+    * @param evaluator
+    * @tparam R
+    * @return
+    */
+  def apply[R](evaluator: ExpressionEvaluator[A, R]): R
 
-  def -(that: Expression[A, R]): Expression[A, R] = Expression.AST.Minus(this, that)
+  def +(that: Expression[A]): Expression[A] = Expression.AST.Plus(this, that)
 
-  def *(that: Expression[A, R]): Expression[A, R] = Expression.AST.Times(this, that)
+  def -(that: Expression[A]): Expression[A] = Expression.AST.Minus(this, that)
 
-  def /(that: Expression[A, R]): Expression[A, R] = Expression.AST.Div(this, that)
+  def *(that: Expression[A]): Expression[A] = Expression.AST.Times(this, that)
 
-  def unary_- : Expression[A, R] = Expression.AST.Negate(this)
+  def /(that: Expression[A]): Expression[A] = Expression.AST.Div(this, that)
 
-  def repeat(times: Int): Expression[A, R] = Expression.AST.Repeat(this, times)
+  def unary_- : Expression[A] = Expression.AST.Negate(this)
+
+  def repeat(times: Int): Expression[A] = Expression.AST.Repeat(this, times)
 
 }
 
@@ -31,56 +39,56 @@ object Expression {
 
   // === Convenience Factory Methods ===
 
-  def applyValues[A, R](values: A*): Expression[A, R] = Expression.AST.Values(values)
+  def applyValues[A](values: A*): Expression[A] = Expression.AST.Values(values)
 
-  def applyCounts[A, R](valueCounts: (A, Long)*): Expression[A, R] = Expression.AST.ValueCounts(valueCounts)
+  def applyCounts[A](valueCounts: (A, Long)*): Expression[A] = Expression.AST.ValueCounts(valueCounts)
 
-  def takeLower[A, R](n: Int, exprs: Iterable[Expression[A, R]]): Expression[A, R] = Expression.AST.TakeLower(n, exprs)
+  def takeLower[A](n: Int, exprs: Iterable[Expression[A]]): Expression[A] = Expression.AST.TakeLower(n, exprs)
 
-  def takeUpper[A, R](n: Int, exprs: Iterable[Expression[A, R]]): Expression[A, R] = Expression.AST.TakeUpper(n, exprs)
+  def takeUpper[A](n: Int, exprs: Iterable[Expression[A]]): Expression[A] = Expression.AST.TakeUpper(n, exprs)
 
   // === Expression Subclasses ===
 
   object AST {
 
-    case class Plus[A, R](x: Expression[A, R], y: Expression[A, R]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.plus(x, y)
+    case class Plus[A](x: Expression[A], y: Expression[A]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.plus(x, y)
     }
 
-    case class Minus[A, R](x: Expression[A, R], y: Expression[A, R]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.minus(x, y)
+    case class Minus[A](x: Expression[A], y: Expression[A]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.minus(x, y)
     }
 
-    case class Times[A, R](x: Expression[A, R], y: Expression[A, R]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.times(x, y)
+    case class Times[A](x: Expression[A], y: Expression[A]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.times(x, y)
     }
 
-    case class Div[A, R](x: Expression[A, R], y: Expression[A, R]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.div(x, y)
+    case class Div[A](x: Expression[A], y: Expression[A]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.div(x, y)
     }
 
-    case class Negate[A, R](x: Expression[A, R]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.negate(x)
+    case class Negate[A](x: Expression[A]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.negate(x)
     }
 
-    case class Repeat[A, R](x: Expression[A, R], times: Int) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.repeat(times, x)
+    case class Repeat[A](x: Expression[A], times: Int) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.repeat(times, x)
     }
 
-    case class TakeLower[A, R](n: Int, exprs: Iterable[Expression[A, R]]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.takeLower(n, exprs)
+    case class TakeLower[A](n: Int, exprs: Iterable[Expression[A]]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.takeLower(n, exprs)
     }
 
-    case class TakeUpper[A, R](n: Int, exprs: Iterable[Expression[A, R]]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.takeUpper(n, exprs)
+    case class TakeUpper[A](n: Int, exprs: Iterable[Expression[A]]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.takeUpper(n, exprs)
     }
 
-    case class Values[A, R](values: Iterable[A]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.fromValues(values)
+    case class Values[A](values: Iterable[A]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.fromValues(values)
     }
 
-    case class ValueCounts[A, R](valueCounts: Iterable[(A, Long)]) extends Expression[A, R] {
-      override def apply(ops: ExpressionOps[A, R]): R = ops.fromCounts(valueCounts)
+    case class ValueCounts[A](valueCounts: Iterable[(A, Long)]) extends Expression[A] {
+      override def apply[R](ops: ExpressionEvaluator[A, R]): R = ops.fromCounts(valueCounts)
     }
 
   }

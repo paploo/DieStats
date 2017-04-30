@@ -137,17 +137,17 @@ class DistributionStatisticsTest extends SpecTest {
     describe("percentileLeft") {
 
       it("should return the lowest value at the 0th percentile") {
-        stats.percentile(Probability.zero) should ===(15L)
+        stats.percentileLeft(Probability.zero) should ===(15L)
       }
 
       it("should return the highest value at the 100th percentile") {
-        stats.percentile(Probability.one) should ===(50L)
+        stats.percentileLeft(Probability.one) should ===(50L)
       }
 
       it("should calculate the percentile inclusive to the right-end of the percentile") {
-        stats.percentile(Probability(39, 100)) should ===(20L)
-        stats.percentile(Probability(40, 100)) should ===(35L) //This is the big difference, we aren't right-side inclusive!
-        stats.percentile(Probability(41, 100)) should ===(35L)
+        stats.percentileLeft(Probability(39, 100)) should ===(20L)
+        stats.percentileLeft(Probability(40, 100)) should ===(35L) //This is the big difference, we aren't right-side inclusive!
+        stats.percentileLeft(Probability(41, 100)) should ===(35L)
       }
 
     }
@@ -173,7 +173,7 @@ class DistributionStatisticsTest extends SpecTest {
         stats.selectRandom
       }
 
-      values should === ("A", "B", "B", "C", "C")
+      values should === (Seq("A", "B", "B", "C", "C"))
 
     }
 

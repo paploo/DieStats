@@ -167,12 +167,14 @@ object DistributionStatistics {
     override lazy val median: A = percentile(Probability(1L, 2L))
 
     override def percentile(p: Probability): A = cumulativePairs.find { pair =>
-      p <= frequencyNumeric.toProbability(pair._2, sum)
+      frequencyNumeric.toProbability(pair._2, sum) >= p
     }.get._1
 
-    override def percentileLeft(p: Probability): A = cumulativePairs.find { pair =>
-      p < frequencyNumeric.toProbability(pair._2, sum)
-    }.get._1
+    override def percentileLeft(p: Probability): A =
+      if (p == Probability.one) cumulativePairs.last._1
+      else cumulativePairs.find { pair =>
+        frequencyNumeric.toProbability(pair._2, sum) > p
+      }.get._1
 
   }
 

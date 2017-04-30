@@ -4,7 +4,7 @@ version := "0.3.0"
 
 scalaVersion := "2.12.2"
 
-scalacOptions ++= Seq(
+scalacOptions in (Compile, compile) ++= Seq(
   "-unchecked",
   "-deprecation",
   "-Xlint",
@@ -20,7 +20,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
-//initialCommands in console += "import net.paploo.diestats._;"
+initialCommands in console += "import net.paploo.diestats._;"
+initialCommands in console += "import net.paploo.diestats.expression._;"
 
 scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
 
