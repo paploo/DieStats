@@ -1,6 +1,9 @@
 # DieStats
 (c) 2016, Jeff Reinecke
 
+Main Repo (login required): https://gitlab.com/paploo/DieStats
+Public Mirror: https://github.com/paploo/DieStats
+
 ## Overview
 
 This library provides mechanisms for doing statistical analysis on dice expressions;
@@ -13,13 +16,13 @@ it consists of four main parts:
 
 ## History
 
-* v0.3.x (Sprint 2017) - Complete rewrite to facilitate non-numerical domains.
+* v0.3.x (Spring 2017) - Complete rewrite to facilitate non-numerical domains.
 * v0.2.x (Spring 2016) - Started on a rewrite from scratch to be better.
 * v0.1.x (Dec 2013) - An initial prototype to learn some Scala.
 
 ## Task Overview
 
-* (80%) Statistics Library Implementation
+* (DONE) Statistics Library Implementation
 * (40%) Expression Library Implementation
 * (_) Parser Library Implementation
 * (_) CLI Implementation

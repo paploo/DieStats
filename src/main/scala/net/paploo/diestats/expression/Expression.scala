@@ -6,7 +6,7 @@ package net.paploo.diestats.expression
   * Expressions define an AST for forming values over a domain A, with evaluation of operations
   * based withheld until an appropriate evaluation context is applied to generate a result.
   *
-  * Example contexts include evalutation to ProbabilityDistributions, Statistics, or Randomly Generated Values.
+  * Example contexts include evaluation to ProbabilityDistributions, Statistics, or Randomly Generated Values.
   *
   * @tparam A The expression domain type.
   */
