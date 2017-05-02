@@ -1,5 +1,6 @@
 package net.paploo.diestats.statistics.distribution
 
+import scala.collection.mutable
 import scala.language.{higherKinds, implicitConversions}
 
 /**
@@ -7,6 +8,10 @@ import scala.language.{higherKinds, implicitConversions}
   *
   * This library, being made for dice statistics, focuses entirely on
   * discrete distributions, so we dispense with the "Discrete" prefix.
+  *
+  * Typically, the domain is considered to satisfy `Monoid` and `Ordering`,
+  * while the values are considered to satisfy `Numeric`, however the
+  * infrastructure defers to typeclasses for this behavior only when necessary.
   *
   * @tparam A The domain type.
   * @tparam B The value for an input from the domain; this is typically a numeric type.
@@ -74,7 +79,30 @@ trait Distribution[A, +B] extends PartialFunction[A, B] {
 
 object Distribution {
 
-  implicit def distributionToIterable[A, B](dist: Distribution[A, B]): Iterable[(A, B)] = dist.toSeq
+  implicit def distributionToIterable[A, B](dist: Distribution[A, B]): Iterable[(A, B)] =
+    dist.toSeq
+
+  /**
+    * Reduces the given pairs by summing the numeric when the pair is equal.
+    *
+    * Note that the ordering of the resulting pairs is not preserved and is unpredictable.
+    * @param pairs
+    * @param num
+    * @tparam A
+    * @tparam N
+    * @return
+    */
+  def reducePairs[A, N](pairs: Iterable[(A, N)])(implicit num: Numeric[N]): Iterable[(A, N)] = {
+    val buffer = mutable.Map.empty[A, N]
+
+    pairs.foreach { case (a,n) =>
+      val oldN = buffer.getOrElseUpdate(a, num.zero)
+      val newN = num.plus(oldN, n)
+      buffer += a -> newN
+    }
+
+    buffer.toMap
+  }
 
 }
 

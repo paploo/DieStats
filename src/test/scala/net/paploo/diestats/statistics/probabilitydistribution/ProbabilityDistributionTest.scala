@@ -141,4 +141,61 @@ class ProbabilityDistributionTest extends SpecTest {
 
   }
 
+  describe("mapDomain") {
+
+    val pd = ProbabilityDistribution(
+      "TT" -> Probability(1, 4),
+      "TH" -> Probability(1, 4),
+      "HT" -> Probability(1, 4),
+      "HH" -> Probability(1, 4)
+    )
+
+    it("should map to a new domain") {
+      val result = pd.mapDomain(s => if (s.contains('H')) 'H' else 'T')
+      result.pairs should === (Seq(
+        'H' -> Probability(3, 4),
+        'T' -> Probability(1, 4)
+      ))
+    }
+
+    it("should aggregate via sum on duplicate pairs") {
+      val result = pd.mapDomain(_ => "x")
+      result.pairs should === (Seq(
+        "x" -> Probability.one
+      ))
+    }
+
+  }
+
+  describe("mapConvolve") {
+
+    val d3 = ProbabilityDistribution(
+      1 -> Probability(1,3),
+      2 -> Probability(1,3),
+      3 -> Probability(1,3)
+    )
+
+    it("should mapConvolve 3d3b2 distribution from d3 repeated 3 times") {
+      val result = ProbabilityDistribution.mapConvolve(Seq(d3, d3, d3)) { rolls =>
+        rolls.sorted.takeRight(2).sum
+      }
+
+      result should === (ProbabilityDistribution(
+        2 -> Probability(1, 27),
+        3 -> Probability(3, 27),
+        4 -> Probability(7, 27),
+        5 -> Probability(9, 27),
+        6 -> Probability(7, 27)
+      ))
+    }
+
+    it("should satisfy identity a.convolve(b)(m.reduce) == mapConvolve(Seq(a,b))(m)") {
+      val a = d3
+      val b = d3
+      val m = implicitly[Monoid[Int]]
+      ProbabilityDistribution.mapConvolve(Seq(a, b))(m.reduce) should === (a.convolve(b)(m))
+    }
+
+  }
+
 }
