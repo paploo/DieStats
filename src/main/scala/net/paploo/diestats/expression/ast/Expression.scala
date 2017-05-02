@@ -3,42 +3,61 @@ package net.paploo.diestats.expression.ast
 import scala.language.higherKinds
 
 trait Evaluator[A, R] {
-  def fromValues(a: Iterable[A]): R
-  def convolve(x: Expression[A, Evaluator], y: Expression[A, Evaluator]): R
+  def fromValues(as: Seq[A]): R
+  def convolve[E[_,_] <: Evaluator[A,R]](x: Expression[A, E], y: Expression[A, E]): R
 }
 
-trait NumericDomainEvaluator[A, R] extends Evaluator[A,R] {
-  def plus(x: Expression[A, Evaluator], y: Expression[A, Evaluator]): R
+trait NumericEvaluator[A, R] extends Evaluator[A,R] {
+  def plus[E[_,_] <: Evaluator[A,R]](x: Expression[A, E], y: Expression[A, E]): R
 }
 
-trait Expression[A, -E[_,_] <: Evaluator[_,_]] {
-  def apply[R](evaluator: E[A, R]): R
+object Evaluator {
+
+  object StringEvaluator extends Evaluator[String, String] {
+    override def fromValues(as: Seq[String]): String = as.mkString("")
+
+    override def convolve[E[_, _] <: Evaluator[String, String]](x: Expression[String, E], y: Expression[String, E]): String = {
+      val xx = x(this)
+      val yy = y(this)
+      xx + yy
+    }
+  }
+
+}
+
+trait Expression[A, -E[_,_]] {
+  def apply[R](e: E[A,R]): R
 }
 
 object Expression {
 
-  case class Convolve[A, EE[_,_] <: Evaluator[_,_]](x: Expression[A, EE], y: Expression[A, EE]) extends Expression[A, EE] {
-    override def apply[R](evaluator: EE[A, R]): R = evaluator.convolve(x, y)
+  case class Values[A, -E[X,Y] <: Evaluator[X,Y]](values: A*) extends Expression[A, E] {
+      override def apply[R](e: E[A, R]): R = e.fromValues(values)
   }
 
-  case class Plus[A, EE[_,_] <: NumericDomainEvaluator[_,_]](x: Expression[A, EE], y: Expression[A, EE]) extends Expression[A, EE] {
-    override def apply[R](evaluator: EE[A, R]): R = evaluator.plus(x, y)
+  case class Convolve[A, -E[X,Y] <: Evaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A, R]): R = e.convolve(x, y)
   }
 
-  case class Values[A](values: A*) extends Expression[A, Evaluator] {
-    override def apply[R](evaluator: Evaluator[A, R]): R = evaluator.fromValues(values)
+  case class Plus[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A, R]): R = e.plus(x, y)
   }
+
 
   val foo: Expression[String, Evaluator] = Convolve(Values("foo", "bar"), Values("alpha", "beta"))
 
-  val bar: Expression[Int, NumericDomainEvaluator] = Plus(Values(1,2), Values(3,4))
+  val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
 
-  val cfoo = Convolve(foo, foo)
+  //Shouldn't compile because plus requires NumericDomainEvaluator.
+  //val bar2: Expression[Int, Evaluator] = Plus(Values(1,2), Values(3,4))
+
+
+  val cfoo: Expression[String, Evaluator] = Convolve(foo, foo)
 
   //We don't want this to work, since bar requires NumericDomainEvaluator.
   //val cbar: Expression[Int, Evaluator] = Convolve(bar, bar)
 
-  val cbar2: Expression[Int, NumericDomainEvaluator] = Convolve(bar, bar)
+  val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
 
 }
 
