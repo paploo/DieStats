@@ -1,6 +1,6 @@
-package net.paploo.diestats.expression.ast
-
-import net.paploo.diestats.statistics.util.Monoid
+//package net.paploo.diestats.expression.ast
+//
+//import net.paploo.diestats.statistics.util.Monoid
 //
 ///**
 //  * The base trait for evaluators.
