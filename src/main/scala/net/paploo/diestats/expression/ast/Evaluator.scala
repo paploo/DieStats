@@ -33,7 +33,8 @@ trait Evaluator[A, R] {
   *
   * Note that only some sub implementations need define an ordering,
   * and hence none is required here by the trait. For example,
-  * a stringifier won't, while something that performs the actual computation will.
+  * a stringifier won't need one, while something that performs the actual
+  * computation will need it.
   *
   * @tparam A The domain type
   */
