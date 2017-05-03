@@ -1,6 +1,7 @@
 image: openjdk:8-jdk
 
 stages:
+  - test
   - package
   - publish
 
@@ -13,6 +14,17 @@ before_script:
   - apt-get update -y
   - apt-get install sbt -y
   - sbt sbt-version
+  
+test:
+  stage: test
+  except:
+    - master
+  cache:
+    key: "$CI_COMMIT_SHA"
+    paths:
+      - target/
+  script:
+    - sbt clean compile test
     
 package:
   stage: package
