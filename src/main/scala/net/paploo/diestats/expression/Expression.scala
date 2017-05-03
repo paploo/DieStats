@@ -21,6 +21,8 @@ trait Expression[A] {
     */
   def apply[R](evaluator: ExpressionEvaluator[A, R]): R
 
+  //TODO: + is convolve, and repeat is like the `2d6` which is repeated convlution.
+
   def +(that: Expression[A]): Expression[A] = Expression.AST.Plus(this, that)
 
   def -(that: Expression[A]): Expression[A] = Expression.AST.Minus(this, that)

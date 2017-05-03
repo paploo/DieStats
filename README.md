@@ -1,8 +1,11 @@
 # DieStats
 (c) 2016, Jeff Reinecke
 
-Main Repo (login required): https://gitlab.com/paploo/DieStats
-Public Mirror: https://github.com/paploo/DieStats
+Main Repo and issue tracker (login required):
+https://gitlab.com/paploo/DieStats
+
+Public Mirror (no login required):
+https://github.com/paploo/DieStats
 
 ## Overview
 
@@ -22,7 +25,7 @@ it consists of four main parts:
 
 ## Task Overview
 
-* (DONE) Statistics Library Implementation
-* (40%) Expression Library Implementation
+* (90%) Statistics Library Implementation
+* (30%) Expression Library Implementation
 * (_) Parser Library Implementation
 * (_) CLI Implementation

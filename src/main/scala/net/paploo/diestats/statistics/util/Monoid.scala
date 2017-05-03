@@ -7,6 +7,8 @@ trait Monoid[A] {
 
   def empty: A
 
+  def reduce(as: Iterable[A]): A = as.foldLeft(empty)((x,y) => concat(x,y))
+
 }
 
 object Monoid {
