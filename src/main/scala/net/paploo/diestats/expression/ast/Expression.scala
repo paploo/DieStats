@@ -1,63 +1,86 @@
 package net.paploo.diestats.expression.ast
 
+import net.paploo.diestats.expression.ast.Evaluator.IntNumericEvaluator
+import net.paploo.diestats.expression.ast.Expression.{Convolve, Plus, Values}
+
 import scala.language.higherKinds
 
-trait Evaluator[A, R] {
+trait Evaluator[A] {
+  type R
   def fromValues(as: Seq[A]): R
-  def convolve[E[_,_] <: Evaluator[A,R]](x: Expression[A, E], y: Expression[A, E]): R
+  def convolve(x: R, y: R): R
 }
 
-trait NumericEvaluator[A, R] extends Evaluator[A,R] {
-  def plus[E[_,_] <: Evaluator[A,R]](x: Expression[A, E], y: Expression[A, E]): R
+trait NumericEvaluator[A] extends Evaluator[A] {
+  def plus(x: R, y: R): R
 }
 
 object Evaluator {
 
-  object StringEvaluator extends Evaluator[String, String] {
-    override def fromValues(as: Seq[String]): String = as.mkString("")
+  trait StringEvaluator extends Evaluator[String] {
+    override type R = String
+    override def fromValues(as: Seq[String]): String = as.toString
+    override def convolve(x: String, y: String): String = s"$x convolve $y"
+  }
+  object StringEvaluator extends StringEvaluator
 
-    override def convolve[E[_, _] <: Evaluator[String, String]](x: Expression[String, E], y: Expression[String, E]): String = {
-      val xx = x(this)
-      val yy = y(this)
-      xx + yy
-    }
+  object IntNumericEvaluator extends NumericEvaluator[Int] {
+    override type R = Int
+
+    override def fromValues(as: Seq[Int]): Int = as.head
+
+    override def convolve(x: Int, y: Int): Int = x+y
+
+    override def plus(x: Int, y: Int): Int = convolve(x,y)
   }
 
 }
 
-trait Expression[A, -E[_,_]] {
-  def apply[R](e: E[A,R]): R
+trait Expression[A, -E[X] <: Evaluator[X]] {
+  def apply(e: E[A]): e.R
 }
 
 object Expression {
 
-  case class Values[A, -E[X,Y] <: Evaluator[X,Y]](values: A*) extends Expression[A, E] {
-      override def apply[R](e: E[A, R]): R = e.fromValues(values)
+  case class Values[A, -E[X] <: Evaluator[X]](values: A*) extends Expression[A, E] {
+      override def apply(e: E[A]): e.R = e.fromValues(values)
   }
 
-  case class Convolve[A, -E[X,Y] <: Evaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = e.convolve(x, y)
+  case class Convolve[A, -E[X] <: Evaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply(e: E[A]): e.R = e.convolve(x(e), y(e))
   }
 
-  case class Plus[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = e.plus(x, y)
+  case class Plus[A, -E[X] <: NumericEvaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply(e: E[A]): e.R = e.plus(x(e), y(e))
   }
 
+}
 
-  val foo: Expression[String, Evaluator] = Convolve(Values("foo", "bar"), Values("alpha", "beta"))
+object Runner {
 
-  val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
+  def main(args: Array[String]): Unit = {
 
-  //Shouldn't compile because plus requires NumericDomainEvaluator.
-  //val bar2: Expression[Int, Evaluator] = Plus(Values(1,2), Values(3,4))
+    val foo: Expression[String, Evaluator] = Convolve(Values("foo", "bar"), Values("alpha", "beta"))
+    val resultFoo: String = foo.apply(Evaluator.StringEvaluator)
+    println(resultFoo)
+
+    val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
+    val resultBar: Int = bar.apply(Evaluator.IntNumericEvaluator)
+    println(resultBar)
+
+    //Shouldn't compile because plus requires NumericDomainEvaluator.
+    //val bar2: Expression[Int, Evaluator] = Plus(Values(1,2), Values(3,4))
 
 
-  val cfoo: Expression[String, Evaluator] = Convolve(foo, foo)
+    val cfoo: Expression[String, Evaluator] = Convolve(foo, foo)
 
-  //We don't want this to work, since bar requires NumericDomainEvaluator.
-  //val cbar: Expression[Int, Evaluator] = Convolve(bar, bar)
+    //We don't want this to work, since bar requires NumericDomainEvaluator.
+    //val cbar: Expression[Int, Evaluator] = Convolve(bar, bar)
 
-  val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
+    val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
+    println(cbar2(Evaluator.IntNumericEvaluator))
+
+  }
 
 }
 
