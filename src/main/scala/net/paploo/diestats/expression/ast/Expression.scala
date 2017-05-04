@@ -39,8 +39,8 @@ import scala.language.higherKinds
   * @tparam A
   * @tparam E
   */
-trait Expression[A, -E[X,Y] <: Evaluator[X,Y]] {
-  def apply[R](e: E[A,R]): R
+trait Expression[A, -E[X] <: Evaluator[X]] {
+  def apply[R](e: E[A]): e.R
 }
 
 object Expression {
@@ -49,68 +49,68 @@ object Expression {
     * Given a bunch of expressions, evaluate them all in-order, independently, and then
     * return the result of the last one.
     */
-  case class Statements[A, -E[X,Y] <: Evaluator[X,Y]](xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = xs.map(_.apply(e)).last
+  case class Statements[A, -E[X] <: Evaluator[X]](xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = xs.map(_.apply(e)).last
   }
 
 
-  case class Values[A, -E[X,Y] <: Evaluator[X,Y]](values: A*) extends Expression[A, E] {
-      override def apply[R](e: E[A,R]): R = e.fromValues(values)
+  case class Values[A, -E[X] <: Evaluator[X]](values: A*) extends Expression[A, E] {
+      override def apply[R](e: E[A]): e.R = e.fromValues(values)
   }
 
 
-  case class Convolve[A, -E[X,Y] <: Evaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.convolve(x(e), y(e))
+  case class Convolve[A, -E[X] <: Evaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.convolve(x(e), y(e))
   }
 
-  case class RepeatedConvolve[A, -E[X,Y] <: Evaluator[X,Y]](n: Int, x: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = e.repeatedConvolve(n, x(e))
-  }
-
-
-  case class Best[A, -E[X,Y] <: OrderedEvaluator[X,Y]](n: Int, xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = e.best(n, xs.map(_.apply(e)))
-  }
-
-  case class Worst[A, -E[X,Y] <: OrderedEvaluator[X,Y]](n: Int, xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = e.best(n, xs.map(_.apply(e)))
+  case class RepeatedConvolve[A, -E[X] <: Evaluator[X]](n: Int, x: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.repeatedConvolve(n, x(e))
   }
 
 
-  case class Plus[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.plus(x(e), y(e))
+  case class Best[A, -E[X] <: OrderedEvaluator[X]](n: Int, xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.best(n, xs.map(_.apply(e)))
   }
 
-  case class Minus[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.minus(x(e), y(e))
+  case class Worst[A, -E[X] <: OrderedEvaluator[X]](n: Int, xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.best(n, xs.map(_.apply(e)))
   }
 
-  case class Mult[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.times(x(e), y(e))
+
+  case class Plus[A, -E[X] <: NumericEvaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.plus(x(e), y(e))
   }
 
-  case class Quot[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.quot(x(e), y(e))
+  case class Minus[A, -E[X] <: NumericEvaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.minus(x(e), y(e))
   }
 
-  case class Negate[A, -E[X,Y] <: NumericEvaluator[X,Y]](x: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.negate(x(e))
+  case class Mult[A, -E[X] <: NumericEvaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.times(x(e), y(e))
   }
 
-  case class DieValue[A, -E[X,Y] <: NumericEvaluator[X,Y]](numberOfSides: A) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.rangedValues(numberOfSides)
+  case class Quot[A, -E[X] <: NumericEvaluator[X]](x: Expression[A, E], y: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.quot(x(e), y(e))
   }
 
-  case class RangedValue[A, -E[X,Y] <: NumericEvaluator[X,Y]](min: A, max: A) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.rangedValues(min, max)
+  case class Negate[A, -E[X] <: NumericEvaluator[X]](x: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.negate(x(e))
   }
 
-  case class Store[A, -E[X,Y] <: MemoryContext[X,Y,I], I](id: I, x: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.store(id, x(e))
+  case class DieValue[A, -E[X] <: NumericEvaluator[X]](numberOfSides: A) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.rangedValues(numberOfSides)
   }
 
-  case class Fetch[A, -E[X,Y] <: MemoryContext[X,Y,I], I](id: I) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.fetch(id)
+  case class RangedValue[A, -E[X] <: NumericEvaluator[X]](min: A, max: A) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.rangedValues(min, max)
+  }
+
+  case class Store[A, -E[X] <: MemoryContext[X,I], I](id: I, x: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.store(id, x(e))
+  }
+
+  case class Fetch[A, -E[X] <: MemoryContext[X,I], I](id: I) extends Expression[A, E] {
+    override def apply[R](e: E[A]): e.R = e.fetch(id)
   }
 
 }
@@ -146,11 +146,11 @@ object Runner {
     val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
     println(cbar2(Evaluator.RandomNumericReflexive))
 
-    type NFoo[A, R] = NumericEvaluator[A, R] with MemoryContext[A, R, UUID]
-    type NBar[A, R] = NumericEvaluator[A, R] with MemoryContext[A, R, String]
+    type NFoo[A] = NumericEvaluator[A] with MemoryContext[A, UUID]
+    type NBar[A] = NumericEvaluator[A] with MemoryContext[A, String]
 
-    def uuidMM(): NFoo[String, String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String, UUID] {}
-    def stringMM(): NBar[String, String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String, String] {}
+    def uuidMM(): NFoo[String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, UUID] {}
+    def stringMM(): NBar[String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String] {}
     //val stringMM = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String] {}
 
     val memory = Store(UUID.randomUUID(), foo)

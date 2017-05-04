@@ -12,9 +12,10 @@ import scala.collection.immutable.NumericRange
   * Defines functionality that is expected of every domain.
   *
   * @tparam A The domain type
-  * @tparam R The evaluation result type
   */
-trait Evaluator[A, R] {
+trait Evaluator[A] {
+  type R
+
   def fromValues(as: Iterable[A]): R
 
   def convolve(x: R, y: R): R
@@ -38,7 +39,7 @@ trait Evaluator[A, R] {
   *
   * @tparam A The domain type
   */
-trait OrderedEvaluator[A, R] extends Evaluator[A, R] {
+trait OrderedEvaluator[A] extends Evaluator[A] {
   def best(n: Int, xs: Iterable[R]): R
   def worst(n: Int, xs: Iterable[R]): R
 }
@@ -51,9 +52,8 @@ trait OrderedEvaluator[A, R] extends Evaluator[A, R] {
   * Note that plus is almost always a synonym for convolution.
   *
   * @tparam A The domain type
-  * @tparam R The evaluation result type
   */
-trait NumericEvaluator[A, R] extends OrderedEvaluator[A, R] {
+trait NumericEvaluator[A] extends OrderedEvaluator[A] {
   def plus(x: R, y: R): R = convolve(x, y)
   def minus(x: R, y: R): R
   def times(x: R, y: R): R
@@ -77,19 +77,17 @@ trait NumericEvaluator[A, R] extends OrderedEvaluator[A, R] {
   * the factory and used independently.
   *
   * @tparam A The domain type
-  * @tparam R The evaluation result type
   */
-trait ContextualEvaluator[A, R] extends Evaluator[A, R]
+trait ContextualEvaluator[A] extends Evaluator[A]
 
 /**
   * Trait for an Evaluator that retains the contextual information of
   * a memory.
   *
   * @tparam A The domain type
-  * @tparam R The evaluation result type
   * @tparam I The ID type
   */
-trait MemoryContext[A, R, I] extends ContextualEvaluator[A, R] {
+trait MemoryContext[A, I] extends ContextualEvaluator[A] {
   /**
     * Storage is typically implemented as a void return type, however
     * in an expression oriented anguage, it usually returns the values stored.
@@ -101,13 +99,9 @@ trait MemoryContext[A, R, I] extends ContextualEvaluator[A, R] {
   def fetch(id: I): R
 }
 
-trait UUIDMemoryContext[A, R] extends MemoryContext[A, R, java.util.UUID] {
-  def memoryMap: Any
-}
+trait UUIDMemoryContext[A] extends MemoryContext[A, java.util.UUID]
 
-trait StringMemoryContext[A, R] extends MemoryContext[A, R, String] {
-  def memoryMap: Any
-}
+trait StringMemoryContext[A] extends MemoryContext[A, String]
 
 object Evaluator {
 
@@ -115,7 +109,10 @@ object Evaluator {
     * A default stringifier that can be used with any expression.
     * @tparam A The domain type
     */
-  trait Stringifier[A] extends NumericEvaluator[A, String] {
+  trait Stringifier[A] extends NumericEvaluator[A] {
+
+    override type R = String
+
     override def convolve(x: String, y: String): String = s"($x + $y)"
     override def repeatedConvolve(n: Int, x: String): String = s"($n $x)"
     override def minus(x: String, y: String): String = s"($x - $y)"
@@ -134,7 +131,7 @@ object Evaluator {
   def Stringifier[A]: Stringifier[A] = new Stringifier[A] {}
 
 
-  trait DefaultEvaluator[A, R] extends Evaluator[A, R] {
+  trait DefaultEvaluator[A] extends Evaluator[A] {
 
     override def repeatedConvolve(n: Int, x: R): R = {
       require(n > 0, s"repeatedConvolution must hapeen more than zero times, but got $n, when convolving over $x")
@@ -143,13 +140,16 @@ object Evaluator {
 
   }
 
-  trait ReflexiveMonoidal[A, R] extends DefaultEvaluator[A, R] {
+  trait ReflexiveMonoidal[A] extends DefaultEvaluator[A] {
     def monoid: Monoid[R]
 
     override def convolve(x: R, y: R): R = monoid.concat(x, y)
   }
 
-  trait ReflexiveOrdered[A] extends ReflexiveMonoidal[A, A] with OrderedEvaluator[A, A] {
+  trait ReflexiveOrdered[A] extends ReflexiveMonoidal[A] with OrderedEvaluator[A] {
+
+    override type R = A
+
     def ordering: Ordering[A]
 
     override def best(n: Int, xs: Iterable[A]): A =
@@ -159,7 +159,7 @@ object Evaluator {
       monoid.reduce(xs.toSeq.sorted(ordering).take(n))
   }
 
-  trait ReflexiveNumeric[A] extends ReflexiveOrdered[A] with NumericEvaluator[A, A] {
+  trait ReflexiveNumeric[A] extends ReflexiveOrdered[A] with NumericEvaluator[A] {
     def numeric: Integral[A]
     override def ordering: Ordering[A] = numeric
     override def monoid: Monoid[A] = Monoid.AdditiveMonoid(numeric)
@@ -177,7 +177,10 @@ object Evaluator {
 
   }
 
-  trait RandomReflexive[A] extends DefaultEvaluator[A, A] {
+  trait RandomReflexive[A] extends DefaultEvaluator[A] {
+
+    override type R = A
+
     def random: java.util.Random
 
     override def fromValues(as: Iterable[A]): A = as.toSeq(random.nextInt(as.size))
@@ -188,7 +191,7 @@ object Evaluator {
   }
   def RandomNumericReflexive[A](implicit numeric: Integral[A]) = new RandomNumericReflexive()
 
-  trait MemoryMapContext[A,R, I] extends MemoryContext[A, R, I] {
+  trait MemoryMapContext[A, I] extends MemoryContext[A, I] {
 
     val memoryMap: scala.collection.mutable.Map[I, R] = scala.collection.mutable.Map.empty[I, R]
 
