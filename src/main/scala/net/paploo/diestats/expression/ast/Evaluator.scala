@@ -85,7 +85,6 @@ trait ContextualEvaluator[A, R] extends Evaluator[A, R]
   * Trait for an Evaluator that retains the contextual information of
   * a memory.
   *
-  * Memory implies mutability, so the mutability
   * @tparam A The domain type
   * @tparam R The evaluation result type
   * @tparam I The ID type
@@ -103,6 +102,10 @@ trait MemoryContext[A, R, I] extends ContextualEvaluator[A, R] {
 }
 
 trait UUIDMemoryContext[A, R] extends MemoryContext[A, R, java.util.UUID] {
+  def memoryMap: Any
+}
+
+trait StringMemoryContext[A, R] extends MemoryContext[A, R, String] {
   def memoryMap: Any
 }
 
@@ -185,16 +188,18 @@ object Evaluator {
   }
   def RandomNumericReflexive[A](implicit numeric: Integral[A]) = new RandomNumericReflexive()
 
-  trait MemoryMapContext[A,R] extends UUIDMemoryContext[A, R] {
+  trait MemoryMapContext[A,R, I] extends MemoryContext[A, R, I] {
 
-    val memoryMap: scala.collection.mutable.Map[java.util.UUID, R] = scala.collection.mutable.Map.empty[java.util.UUID, R]
+    val memoryMap: scala.collection.mutable.Map[I, R] = scala.collection.mutable.Map.empty[I, R]
 
-    override def store(id: java.util.UUID, value: R): R = {
+    override def store(id: I, value: R): R = {
       memoryMap(id) = value
       value
     }
 
-    override def fetch(id: java.util.UUID): R = memoryMap(id)
+    override def fetch(id: I): R = memoryMap(id)
+
+    override def toString: String = s"MemoryMapContext(memoryMap = $memoryMap)"
   }
 
 }
