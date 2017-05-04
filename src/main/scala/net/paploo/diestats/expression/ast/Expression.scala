@@ -1,5 +1,7 @@
 package net.paploo.diestats.expression.ast
 
+import java.util.UUID
+
 import scala.language.higherKinds
 
 /**
@@ -105,11 +107,11 @@ object Expression {
     override def apply[R](e: E[A,R]): R = e.rangedValues(min, max)
   }
 
-  case class Store[A, -E[X,Y] <: MemoryContext[X,Y,I], I](id: I, x: Expression[A, E]) extends Expression[A, E] {
+  case class Store[A, -E[X,Y] <: Evaluator.UUIDMemoryContext[X,Y]](id: UUID, x: Expression[A, E]) extends Expression[A, E] {
     override def apply[R](e: E[A,R]): R = e.store(id, x(e))
   }
 
-  case class Fetch[A, -E[X,Y] <: MemoryContext[X,Y,I], I](id: I) extends Expression[A, E] {
+  case class Fetch[A, -E[X,Y] <: Evaluator.UUIDMemoryContext[X,Y]](id: UUID) extends Expression[A, E] {
     override def apply[R](e: E[A,R]): R = e.fetch(id)
   }
 
@@ -153,8 +155,10 @@ object Runner {
     def stringMM(): NBar[String, String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String, String] {}
     //val stringMM = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String] {}
 
+    def uuidMMC() = new Evaluator.Stringifier[String] with Evaluator.UUIDMemoryContext[String, String] {}
+
     val memory = Store(UUID.randomUUID(), foo)
-    val mmu = uuidMM()
+    val mmu = uuidMMC()
     memory.apply(mmu)
     println(mmu)
     //Doesn't compile because the mmeory type includes the UUID type and thus needs an NFoo
@@ -164,19 +168,19 @@ object Runner {
 
     //Doesn't work, needs explicit typing to Expression[String, NFoo]; which defeats the
     //purpose of building the AST ahead of time.
-    //val convolvMemory: Expression[String, NFoo] = Convolve(memory, foo)
+    val convolvMemory = Convolve(memory, foo)
 
-    val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
-    val mm = uuidMM()
+    //val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
+    val mm = uuidMMC()
     convolvMemory.apply(mm)
     println(mm)
 
     //To compile, we have to give the type of the sequence explicitly.
-    val stats: Expression[String, NFoo] = Statements(Seq[Expression[String, NFoo]](
+    val stats = Statements(Seq(
       Store(UUID.randomUUID(), foo),
       foo
     ))
-    val mm2 = uuidMM()
+    val mm2 = uuidMMC()
     stats.apply(mm2)
 
     println(mm2)

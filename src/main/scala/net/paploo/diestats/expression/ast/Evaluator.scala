@@ -101,14 +101,6 @@ trait MemoryContext[A, R, I] extends ContextualEvaluator[A, R] {
   def fetch(id: I): R
 }
 
-trait UUIDMemoryContext[A, R] extends MemoryContext[A, R, java.util.UUID] {
-  def memoryMap: Any
-}
-
-trait StringMemoryContext[A, R] extends MemoryContext[A, R, String] {
-  def memoryMap: Any
-}
-
 object Evaluator {
 
   /**
@@ -201,5 +193,7 @@ object Evaluator {
 
     override def toString: String = s"MemoryMapContext(memoryMap = $memoryMap)"
   }
+
+  trait UUIDMemoryContext[A, R] extends MemoryMapContext[A, R, java.util.UUID]
 
 }
