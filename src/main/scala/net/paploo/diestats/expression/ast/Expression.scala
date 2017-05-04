@@ -1,5 +1,7 @@
 package net.paploo.diestats.expression.ast
 
+import java.util.UUID
+
 import scala.language.higherKinds
 
 /**
@@ -105,13 +107,32 @@ object Expression {
     override def apply[R](e: E[A]): e.R = e.rangedValues(min, max)
   }
 
-  case class Store[A, -E[X] <: MemoryContext[X,I], I](id: I, x: Expression[A, E]) extends Expression[A, E] {
+//  case class Store[A, -E[X] <: MemoryContext[X,I], I](id: I, x: Expression[A, E]) extends Expression[A, E] {
+//    override def apply[R](e: E[A]): e.R = e.store(id, x(e))
+//  }
+//
+//  case class Fetch[A, -E[X] <: MemoryContext[X,I], I](id: I) extends Expression[A, E] {
+//    override def apply[R](e: E[A]): e.R = e.fetch(id)
+//  }
+
+  //Doesn't work with I as type parameter or declared type; nor as an object with a hard-coded mapping for I.
+//  class Storage {
+//    type I
+//
+//    case class Store[A, -E[X] <: MemoryContext[X, I]](id: I, x: Expression[A, E]) extends Expression[A, E] {
+//      override def apply[R](e: E[A]): e.R = e.store(id, x(e))
+//    }
+//  }
+
+  // Works, but we have to be concrete on ID:
+  case class Store[A, -E[X] <: Evaluator.UUIDMemoryContext[X]](id: UUID, x: Expression[A, E]) extends Expression[A, E] {
     override def apply[R](e: E[A]): e.R = e.store(id, x(e))
   }
 
-  case class Fetch[A, -E[X] <: MemoryContext[X,I], I](id: I) extends Expression[A, E] {
-    override def apply[R](e: E[A]): e.R = e.fetch(id)
-  }
+  // Doesn't work:
+//  case class Fetch[A, -E[X] <: Evaluator.UUIDMemoryContext[X], I](id: UUID) extends Expression[A, E] {
+//    override def apply[R](e: E[A]): e.R = e.fetch(id)
+//  }
 
 }
 
@@ -153,8 +174,10 @@ object Runner {
     def stringMM(): NBar[String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String] {}
     //val stringMM = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String] {}
 
+    def uuidMMC() = new Evaluator.Stringifier[String] with Evaluator.UUIDMemoryContext[String] {}
+
     val memory = Store(UUID.randomUUID(), foo)
-    val mmu = uuidMM()
+    val mmu = uuidMMC()
     memory.apply(mmu)
     println(mmu)
     //Doesn't compile because the mmeory type includes the UUID type and thus needs an NFoo
@@ -165,18 +188,19 @@ object Runner {
     //Doesn't work, needs explicit typing to Expression[String, NFoo]; which defeats the
     //purpose of building the AST ahead of time.
     //val convolvMemory: Expression[String, NFoo] = Convolve(memory, foo)
+    val convolvMemory = Convolve(memory, foo)
 
-    val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
-    val mm = uuidMM()
+    //val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
+    val mm = uuidMMC()
     convolvMemory.apply(mm)
     println(mm)
 
     //To compile, we have to give the type of the sequence explicitly.
-    val stats: Expression[String, NFoo] = Statements(Seq[Expression[String, NFoo]](
+    val stats = Statements(Seq(
       Store(UUID.randomUUID(), foo),
       foo
     ))
-    val mm2 = uuidMM()
+    val mm2 = uuidMMC()
     stats.apply(mm2)
 
     println(mm2)
