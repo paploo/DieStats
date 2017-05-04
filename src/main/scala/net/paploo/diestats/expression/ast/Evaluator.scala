@@ -4,7 +4,7 @@ import java.util.Random
 
 import net.paploo.diestats.statistics.util.Monoid
 
-import scala.annotation.tailrec
+import scala.collection.immutable.NumericRange
 
 /**
   * The base trait for evaluators of expressions.
@@ -57,12 +57,53 @@ trait NumericEvaluator[A, R] extends OrderedEvaluator[A, R] {
   def plus(x: R, y: R): R = convolve(x, y)
   def minus(x: R, y: R): R
   def times(x: R, y: R): R
-  def div(x: R, y: R): R
+  def quot(x: R, y: R): R
 
-  def negate(x: R)
+  def negate(x: R): R
 
-  def range(max: A): R
-  def range(min: A, max: A): R
+  def rangedValues(max: A): R
+  def rangedValues(min: A, max: A): R
+}
+
+/**
+  * Trait used to mark an evaluator as having side effects within
+  * the scope of the evaluator.
+  *
+  * These should be created via a factory and re-used only within a given
+  * context (e.g. a set of expressions that share some state).
+  *
+  * ContextEvaluators should keep the side-effects bound
+  * within this context, so that a new context can be created from
+  * the factory and used independently.
+  *
+  * @tparam A The domain type
+  * @tparam R The evaluation result type
+  */
+trait ContextualEvaluator[A, R] extends Evaluator[A, R]
+
+/**
+  * Trait for an Evaluator that retains the contextual information of
+  * a memory.
+  *
+  * Memory implies mutability, so the mutability
+  * @tparam A The domain type
+  * @tparam R The evaluation result type
+  * @tparam I The ID type
+  */
+trait MemoryContext[A, R, I] extends ContextualEvaluator[A, R] {
+  /**
+    * Storage is typically implemented as a void return type, however
+    * in an expression oriented anguage, it usually returns the values stored.
+    * @param id The identifier for storage.
+    * @param value The value to store.
+    * @return The stored value.
+    */
+  def store(id: I, value: R): R
+  def fetch(id: I): R
+}
+
+trait UUIDMemoryContext[A, R] extends MemoryContext[A, R, java.util.UUID] {
+  def memoryMap: Any
 }
 
 object Evaluator {
@@ -76,14 +117,14 @@ object Evaluator {
     override def repeatedConvolve(n: Int, x: String): String = s"($n $x)"
     override def minus(x: String, y: String): String = s"($x - $y)"
     override def times(x: String, y: String): String = s"($x x $y)"
-    override def div(x: String, y: String): String = s"($x / $y)"
-    override def negate(x: String): Unit = s"(-$x)"
+    override def quot(x: String, y: String): String = s"($x / $y)"
+    override def negate(x: String): String = s"(-$x)"
     override def best(n: Int, xs: Iterable[String]): String = s"($xs b $n)"
     override def worst(n: Int, xs: Iterable[String]): String = s"($xs w $n)"
 
     override def fromValues(as: Iterable[A]): String = setString(as)
-    override def range(max: A): String = s"d$max"
-    override def range(min: A, max: A): String = s"d{$min-$max}"
+    override def rangedValues(max: A): String = s"d$max"
+    override def rangedValues(min: A, max: A): String = s"d{$min-$max}"
 
     private[this] def setString(as: Iterable[A]): String = as.mkString("{", ", ", "}")
   }
@@ -116,26 +157,20 @@ object Evaluator {
   }
 
   trait ReflexiveNumeric[A] extends ReflexiveOrdered[A] with NumericEvaluator[A, A] {
-    def numeric: Numeric[A]
+    def numeric: Integral[A]
     override def ordering: Ordering[A] = numeric
     override def monoid: Monoid[A] = Monoid.AdditiveMonoid(numeric)
 
     override def minus(x: A, y: A): A = numeric.minus(x, y)
     override def times(x: A, y: A): A = numeric.times(x, y)
-    override def div(x: A, y: A): A = numeric.fromInt(numeric.toInt(x) / numeric.toInt(y))
+    override def quot(x: A, y: A): A = numeric.quot(x, y)
 
-    override def negate(x: A): Unit = numeric.negate(x)
+    override def negate(x: A): A = numeric.negate(x)
 
-    override def range(max: A): A = range(numeric.one, max)
-    override def range(min: A, max: A): A = fromValues(computeRange(Vector.empty[A], min, max))
-
-    @tailrec
-    private[this] def computeRange(as: Seq[A], current: A, stopAt: A): Seq[A] = current match {
-      case curr if numeric.gt(curr, stopAt) => as
-      case curr =>
-        val next = numeric.plus(curr, numeric.one)
-        computeRange(as :+ next, next, stopAt)
-    }
+    override def rangedValues(max: A): A = rangedValues(numeric.one, max)
+    override def rangedValues(min: A, max: A): A = fromValues(
+      NumericRange.inclusive(min, max, numeric.one)(numeric)
+    )
 
   }
 
@@ -145,9 +180,21 @@ object Evaluator {
     override def fromValues(as: Iterable[A]): A = as.toSeq(random.nextInt(as.size))
   }
 
-  class RandomNumericReflexive[A](implicit override val numeric: Numeric[A]) extends ReflexiveNumeric[A] with RandomReflexive[A] {
+  class RandomNumericReflexive[A](implicit override val numeric: Integral[A]) extends ReflexiveNumeric[A] with RandomReflexive[A] {
     override def random: Random = new java.util.Random()
   }
-  def RandomNumericReflexive[A](implicit numeric: Numeric[A]) = new RandomNumericReflexive()
+  def RandomNumericReflexive[A](implicit numeric: Integral[A]) = new RandomNumericReflexive()
+
+  trait MemoryMapContext[A,R] extends UUIDMemoryContext[A, R] {
+
+    val memoryMap: scala.collection.mutable.Map[java.util.UUID, R] = scala.collection.mutable.Map.empty[java.util.UUID, R]
+
+    override def store(id: java.util.UUID, value: R): R = {
+      memoryMap(id) = value
+      value
+    }
+
+    override def fetch(id: java.util.UUID): R = memoryMap(id)
+  }
 
 }

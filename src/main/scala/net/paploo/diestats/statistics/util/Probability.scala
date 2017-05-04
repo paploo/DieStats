@@ -165,7 +165,6 @@ object Probability {
     override def zero: Probability = Probability.zero
     override def one: Probability = Probability.one
     override def div(x: Probability, y: Probability): Probability = x / y
-
   }
   implicit object ProbabilityIsFractional extends ProbabilityIsFractional
 
