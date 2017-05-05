@@ -1,5 +1,7 @@
 package net.paploo.diestats.expression.ast
 
+import net.paploo.diestats.expression.evaluator.{DiceExpressionStringEvaluator, DirectEvaluator, Evaluator, NumericEvaluator, OrderedEvaluator, StringMemoryEvaluator}
+
 import scala.language.higherKinds
 
 /**
@@ -19,22 +21,11 @@ import scala.language.higherKinds
   * of the nodes retains the most restrictive evaluator.
   *
   * One downside is that the scala 2.12 type system is easily confused
-  * with layering of multiple Evaluator traits, especially
-  * in cases where the arity doesn't match (e.g. with MemoryContext);
-  * thus it sometimes needs hinting with explicit type parameters.
-  *
-  * One work-around in practical contexts is thatyou'll want to pin-down
-  * the evaluator type using a type alias, and then. For example,
-  * {{{
-  *   type MyEvaluator[A, R] = NumericEvaluator[A, R] with MemoryContext[A, R, String]
-  * }}}
-  * However this design may be abandoned for something simpler, as this does
-  * not allow for building an AST that can be evaluated later.
-  *
-  * The solutions into the future are to:
-  * 1. Abandon the type-level programming enforcement in favor of runtime errors (ick), or
-  * 2. Keep the evaluator hierarchy linear.
-  * Neither of these are ideal.
+  * with "caking" together multiple Evaluator traits when any of them take
+  * extra type parameters, even if they are bound via type alias, when used
+  * as a type bound; the workaround is to make specific traits that pin
+  * it back down to only the core type parameters, and then things
+  * work again.
   *
   * @tparam A
   * @tparam E
@@ -105,17 +96,19 @@ object Expression {
     override def apply[R](e: E[A,R]): R = e.rangedValues(min, max)
   }
 
-  case class Store[A, -E[X,Y] <: MemoryContext[X,Y,I], I](id: I, x: Expression[A, E]) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.store(id, x(e))
+  case class Store[A, -E[X,Y] <: StringMemoryEvaluator[X,Y]](id: String, x: Expression[A, E]) extends Expression[A, E] {
+    override def apply[R](e: E[A, R]): R = e.store(id, x(e))
   }
 
-  case class Fetch[A, -E[X,Y] <: MemoryContext[X,Y,I], I](id: I) extends Expression[A, E] {
-    override def apply[R](e: E[A,R]): R = e.fetch(id)
+  case class Fetch[A, -E[X,Y] <: StringMemoryEvaluator[X,Y]](id: String) extends Expression[A, E] {
+    override def apply[R](e: E[A, R]): R = e.fetch(id)
   }
 
 }
 
 object Runner {
+
+  //TODO: Now that I have found a way to do this that the Scala compile can actually handle, I need to translate these to tests!
 
   import net.paploo.diestats.expression.ast.Expression._
   import java.util.UUID
@@ -123,11 +116,11 @@ object Runner {
   def main(args: Array[String]): Unit = {
 
     val foo: Expression[String, Evaluator] = Convolve(Values("foo", "bar"), Values("alpha", "beta"))
-    val resultFoo: String = foo.apply(Evaluator.Stringifier)
+    val resultFoo: String = foo.apply(DiceExpressionStringEvaluator[String])
     println(resultFoo)
 
     val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
-    val resultBar: Int = bar.apply(Evaluator.RandomNumericReflexive)
+    val resultBar: Int = bar.apply(DirectEvaluator[Int])
     println(resultBar)
 
     //Shouldn't compile because plus requires NumericDomainEvaluator.
@@ -138,23 +131,21 @@ object Runner {
 
 
     val cfoo: Expression[String, Evaluator] = Convolve(foo, foo)
-    println(cfoo(Evaluator.Stringifier))
+    println(cfoo(DiceExpressionStringEvaluator[String]))
 
     //We don't want this to work, since bar requires NumericDomainEvaluator.
     //val cbar: Expression[Int, Evaluator] = Convolve(bar, bar)
 
     val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
-    println(cbar2(Evaluator.RandomNumericReflexive))
+    println(cbar2(DirectEvaluator[Int]))
 
-    type NFoo[A, R] = NumericEvaluator[A, R] with MemoryContext[A, R, UUID]
-    type NBar[A, R] = NumericEvaluator[A, R] with MemoryContext[A, R, String]
+    //def uuidMMC() = new Evaluator.Stringifier[String] with Evaluator.UUIDMemoryMapContext[String, String] {}
+    //def uuidMMC() = new Evaluator.Stringifier[String] with UUIDMemory.SpecificMemoryMapContext[String, String] {}
+    def stringMMC() = DiceExpressionStringEvaluator[String]
 
-    def uuidMM(): NFoo[String, String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String, UUID] {}
-    def stringMM(): NBar[String, String] = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String, String] {}
-    //val stringMM = new Evaluator.Stringifier[String] with Evaluator.MemoryMapContext[String, String] {}
-
-    val memory = Store(UUID.randomUUID(), foo)
-    val mmu = uuidMM()
+    //val memory = Store(UUID.randomUUID(), foo)
+    val memory = Store("banana", foo)
+    val mmu = stringMMC()
     memory.apply(mmu)
     println(mmu)
     //Doesn't compile because the mmeory type includes the UUID type and thus needs an NFoo
@@ -164,19 +155,19 @@ object Runner {
 
     //Doesn't work, needs explicit typing to Expression[String, NFoo]; which defeats the
     //purpose of building the AST ahead of time.
-    //val convolvMemory: Expression[String, NFoo] = Convolve(memory, foo)
+    val convolvMemory = Convolve(memory, foo)
 
-    val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
-    val mm = uuidMM()
+    //val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
+    val mm = stringMMC()
     convolvMemory.apply(mm)
     println(mm)
 
     //To compile, we have to give the type of the sequence explicitly.
-    val stats: Expression[String, NFoo] = Statements(Seq[Expression[String, NFoo]](
-      Store(UUID.randomUUID(), foo),
+    val stats = Statements(Seq(
+      Store("asdf", foo),
       foo
     ))
-    val mm2 = uuidMM()
+    val mm2 = stringMMC()
     stats.apply(mm2)
 
     println(mm2)
