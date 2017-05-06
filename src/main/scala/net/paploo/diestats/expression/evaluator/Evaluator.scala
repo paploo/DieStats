@@ -21,6 +21,6 @@ trait Evaluator[A, R] {
 object Evaluator {
 
   def direct[A](random: java.util.Random)(implicit numeric: Integral[A]): DirectEvaluator[A] =
-    DirectEvaluator.apply(random)
+    DirectEvaluator.numeric(random)
 
 }

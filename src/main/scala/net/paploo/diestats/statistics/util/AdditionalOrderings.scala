@@ -1,6 +1,6 @@
 package net.paploo.diestats.statistics.util
 
-object Ordering {
+object AdditionalOrderings {
 
   class SeqOrdering[A](implicit ord: Ordering[A]) extends Ordering[Seq[A]] {
 

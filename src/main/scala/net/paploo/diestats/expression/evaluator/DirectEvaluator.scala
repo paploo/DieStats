@@ -5,24 +5,24 @@ import net.paploo.diestats.statistics.util.Monoid
 import scala.collection.immutable.NumericRange
 
 /**
-  * Implementation of an evaluator that directly evaluates like a classic expression.
-  * @param random
-  * @param numeric
+  * Base trait of evaluators that directly evaluates like a classic expression.
   * @tparam A The domain type
   */
-class DirectEvaluator[A](override val random: java.util.Random)(implicit override val numeric: Integral[A])
-  extends DirectEvaluator.Numeric[A]
-    with DirectEvaluator.RandomValue[A]
-    with StringMemoryEvaluator.StringMemoryMapEvaluator[A, A]
+trait DirectEvaluator[A] extends DirectEvaluator.RandomValue[A] with StringMemoryEvaluator.StringMemoryMapEvaluator[A, A]
 
 object DirectEvaluator {
 
-  def apply[A](implicit numeric: Integral[A]): DirectEvaluator[A] =
-    apply(new java.util.Random())
+  def ordered[A](implicit monoid: Monoid[A], ordering: Ordering[A]): DirectOrderedEvaluator[A] =
+    ordered(new java.util.Random())
 
-  def apply[A](random: java.util.Random)(implicit numeric: Integral[A]): DirectEvaluator[A] =
-    new DirectEvaluator[A](random)
+  def ordered[A](random: java.util.Random)(implicit monoid: Monoid[A], ordering: Ordering[A]): DirectOrderedEvaluator[A] =
+    new DirectOrderedEvaluator[A](random)
 
+  def numeric[A](implicit num: Integral[A]): DirectNumericEvaluator[A] =
+    numeric(new java.util.Random())
+
+  def numeric[A](random: java.util.Random)(implicit num: Integral[A]): DirectNumericEvaluator[A] =
+    new DirectNumericEvaluator[A](random)
 
   trait Monoidal[A] extends MonoidalEvaluator[A, A]
 
@@ -59,5 +59,11 @@ object DirectEvaluator {
     )
 
   }
+
+  class DirectOrderedEvaluator[A](override val random: java.util.Random)(implicit override val monoid: Monoid[A], override val ordering: Ordering[A])
+    extends DirectEvaluator[A] with DirectEvaluator.Ordered[A]
+
+  class DirectNumericEvaluator[A](override val random: java.util.Random)(implicit override val numeric: Integral[A])
+    extends DirectEvaluator[A] with DirectEvaluator.Numeric[A]
 
 }

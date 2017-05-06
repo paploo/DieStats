@@ -2,7 +2,7 @@ package net.paploo.diestats.statistics.util
 
 import net.paploo.diestats.test.SpecTest
 
-class OrderingTest extends SpecTest {
+class AdditionalOrderingsTest extends SpecTest {
 
   lazy val strings: Seq[Seq[Char]] = {
     val chars: Seq[Option[Char]] = Vector(None) ++ Vector('a', 'c', 'b', 'a').map(Some.apply)
@@ -16,7 +16,7 @@ class OrderingTest extends SpecTest {
   describe("SeqOrdering") {
     it("should compare two Seq[Char] using the same ordering as String") {
 
-      val seqOrdering: Ordering[Seq[Char]] = Ordering.SeqOrdering
+      val seqOrdering: Ordering[Seq[Char]] = AdditionalOrderings.SeqOrdering
 
       for {
         seq1 <- strings

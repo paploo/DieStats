@@ -40,7 +40,7 @@ object Expression {
     * Given a bunch of expressions, evaluate them all in-order, independently, and then
     * return the result of the last one.
     */
-  case class Statements[A, -E[X,Y] <: Evaluator[X,Y]](xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
+  case class Statements[A, -E[X,Y] <: Evaluator[X,Y]](xs: Expression[A, E]*) extends Expression[A, E] {
     override def apply[R](e: E[A, R]): R = xs.map(_.apply(e)).last
   }
 
@@ -100,7 +100,21 @@ object Expression {
     override def apply[R](e: E[A, R]): R = e.store(id, x(e))
   }
 
-  case class Fetch[A, -E[X,Y] <: StringMemoryEvaluator[X,Y]](id: String) extends Expression[A, E] {
+  /**
+    * Fetches the expression for the given id.
+    *
+    * By itself, there is no information for the compiler to pin down the type
+    * of A, but we cannot partially apply the time (e.g. `Fetch[String, _]("foo")` if A =:= String),
+    * so we use a witness class as a second argument that can pin the type parameter down.
+    *
+    * If an unambiguous witness is implicitly in scope, then it will be used to pin down the domain type.
+    *
+    * @param id
+    * @param witness A value of type A that is used to pin down type A without having to give an explicit type E.
+    * @tparam A
+    * @tparam E
+    */
+  case class Fetch[A, -E[X,Y] <: StringMemoryEvaluator[X,Y]](id: String)(implicit witness: DomainType[A]) extends Expression[A, E] {
     override def apply[R](e: E[A, R]): R = e.fetch(id)
   }
 
@@ -120,7 +134,7 @@ object Runner {
     println(resultFoo)
 
     val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
-    val resultBar: Int = bar.apply(DirectEvaluator[Int])
+    val resultBar: Int = bar.apply(DirectEvaluator.numeric[Int])
     println(resultBar)
 
     //Shouldn't compile because plus requires NumericDomainEvaluator.
@@ -137,7 +151,7 @@ object Runner {
     //val cbar: Expression[Int, Evaluator] = Convolve(bar, bar)
 
     val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
-    println(cbar2(DirectEvaluator[Int]))
+    println(cbar2(DirectEvaluator.numeric[Int]))
 
     //def uuidMMC() = new Evaluator.Stringifier[String] with Evaluator.UUIDMemoryMapContext[String, String] {}
     //def uuidMMC() = new Evaluator.Stringifier[String] with UUIDMemory.SpecificMemoryMapContext[String, String] {}
@@ -162,15 +176,15 @@ object Runner {
     convolvMemory.apply(mm)
     println(mm)
 
-    //To compile, we have to give the type of the sequence explicitly.
-    val stats = Statements(Seq(
-      Store("asdf", foo),
-      foo
-    ))
-    val mm2 = stringMMC()
-    stats.apply(mm2)
+//    //To compile, we have to give the type of the sequence explicitly.
+//    val stats = Statements(Seq(
+//      Store("asdf", foo),
+//      foo
+//    ))
+//    val mm2 = stringMMC()
+//    stats.apply(mm2)
 
-    println(mm2)
+//    println(mm2)
 
   }
 
