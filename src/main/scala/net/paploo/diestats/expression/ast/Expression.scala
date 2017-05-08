@@ -125,20 +125,17 @@ object Runner {
   //TODO: Now that I have found a way to do this that the Scala compile can actually handle, I need to translate these to tests!
 
   import net.paploo.diestats.expression.ast.Expression._
-  import java.util.UUID
 
   def main(args: Array[String]): Unit = {
 
     val foo: Expression[String, Evaluator] = Convolve(Values("foo", "bar"), Values("alpha", "beta"))
-    val resultFoo: String = foo.apply(DiceExpressionStringEvaluator[String])
-    println(resultFoo)
 
     val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
-    val resultBar: Int = bar.apply(DirectEvaluator.numeric[Int])
-    println(resultBar)
 
     //Shouldn't compile because plus requires NumericDomainEvaluator.
     //val bar2: Expression[Int, Evaluator] = Plus(Values(1,2), Values(3,4))
+    //assertCompiles("Expression.Values + 1")
+    //assertDoesNotCompile("")
 
     //We can be over-sepcific too:
     val fooN: Expression[String, NumericEvaluator] = foo
@@ -153,38 +150,6 @@ object Runner {
     val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
     println(cbar2(DirectEvaluator.numeric[Int]))
 
-    //def uuidMMC() = new Evaluator.Stringifier[String] with Evaluator.UUIDMemoryMapContext[String, String] {}
-    //def uuidMMC() = new Evaluator.Stringifier[String] with UUIDMemory.SpecificMemoryMapContext[String, String] {}
-    def stringMMC() = DiceExpressionStringEvaluator[String]
-
-    //val memory = Store(UUID.randomUUID(), foo)
-    val memory = Store("banana", foo)
-    val mmu = stringMMC()
-    memory.apply(mmu)
-    println(mmu)
-    //Doesn't compile because the mmeory type includes the UUID type and thus needs an NFoo
-    //    val mms = stringMM()
-    //    memory.apply(mms)
-    //    println(mms)
-
-    //Doesn't work, needs explicit typing to Expression[String, NFoo]; which defeats the
-    //purpose of building the AST ahead of time.
-    val convolvMemory = Convolve(memory, foo)
-
-    //val convolvMemory: Expression[String, NFoo] = Convolve[String, NFoo](memory, foo)
-    val mm = stringMMC()
-    convolvMemory.apply(mm)
-    println(mm)
-
-//    //To compile, we have to give the type of the sequence explicitly.
-//    val stats = Statements(Seq(
-//      Store("asdf", foo),
-//      foo
-//    ))
-//    val mm2 = stringMMC()
-//    stats.apply(mm2)
-
-//    println(mm2)
 
   }
 
