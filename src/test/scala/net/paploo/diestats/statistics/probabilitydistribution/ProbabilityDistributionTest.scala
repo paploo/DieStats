@@ -1,6 +1,6 @@
 package net.paploo.diestats.statistics.probabilitydistribution
 
-import net.paploo.diestats.statistics.util.{Monoid, Probability, Ordering => StatOrdering}
+import net.paploo.diestats.statistics.util.{Monoid, Probability, AdditionalOrderings => StatOrdering}
 import net.paploo.diestats.test.SpecTest
 
 import scala.util.Try
