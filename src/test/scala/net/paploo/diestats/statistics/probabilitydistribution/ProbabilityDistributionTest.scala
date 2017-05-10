@@ -1,6 +1,6 @@
 package net.paploo.diestats.statistics.probabilitydistribution
 
-import net.paploo.diestats.statistics.util.{Monoid, Probability, AdditionalOrderings => StatOrdering}
+import net.paploo.diestats.statistics.util.{CommutativeMonoid, Monoid, Probability, AdditionalOrderings => StatOrdering}
 import net.paploo.diestats.test.SpecTest
 
 import scala.util.Try
@@ -128,7 +128,7 @@ class ProbabilityDistributionTest extends SpecTest {
       }
 
       it("should convolve with a non-ordered seq") {
-        implicit val monoid: Monoid[Seq[String]] = Monoid.SortedSeqMonoid
+        implicit val monoid: Monoid[Seq[String]] = CommutativeMonoid.SeqMonoid
 
         val result = data1 convolve data2
         result.pairs should ===(Seq(

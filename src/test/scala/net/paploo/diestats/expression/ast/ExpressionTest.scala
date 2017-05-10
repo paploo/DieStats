@@ -1,7 +1,7 @@
 package net.paploo.diestats.expression.ast
 
 import net.paploo.diestats.expression.evaluator.{DiceExpressionStringEvaluator, DirectEvaluator, NumericEvaluator, ProbabilityDistributionEvaluator, StringMemoryEvaluator}
-import net.paploo.diestats.statistics.util.{AdditionalOrderings, Monoid, Probability}
+import net.paploo.diestats.statistics.util.{AdditionalOrderings, CommutativeMonoid, Monoid, Probability}
 import net.paploo.diestats.test.SpecTest
 
 class ExpressionTest extends SpecTest {
@@ -23,12 +23,9 @@ class ExpressionTest extends SpecTest {
       def apply(tosses: Toss*): Tosses = tosses.toList
     }
 
-    // Used during convolve to disambiguate the different ordering of the same counts,
-    // by making concat associative; this is desired for the "best 3 of 4 flips" problem.
-    implicit val sortedTossesMonoid: Monoid[Tosses] = new Monoid[Tosses] {
-      override def concat(x: Tosses, y: Tosses): Tosses = (x++y).sorted //Convolve will always sort tails before heads.
-      override def empty: Tosses = List.empty
-    }
+    // By using a commutative monoid the order in which Tails/Heads is seen during convolve doesn't affect the outcome,
+    // because concat(Seq(Tails), Seq(Heads)) will produce the same result as concat(Seq(Heads), Seq(Tails); in this case, the number of heads and tails.
+    implicit val tossesCommutativeMonoid: Monoid[Tosses] = CommutativeMonoid.SeqMonoid[Toss]
 
     implicit val tossesOrdering: Ordering[Tosses] = AdditionalOrderings.SeqOrdering[Toss]
 
