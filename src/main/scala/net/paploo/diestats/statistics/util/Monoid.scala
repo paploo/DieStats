@@ -2,16 +2,18 @@ package net.paploo.diestats.statistics.util
 
 @annotation.implicitNotFound(msg = "No implicit Monoid defined for ${A}.")
 trait Monoid[A] {
-
   def concat(x: A, y: A): A
-
   def empty: A
 
   def reduce(as: Iterable[A]): A = as.foldLeft(empty)((x,y) => concat(x,y))
-
 }
 
 object Monoid {
+
+  def apply[A](emptyValue: => A)(concatFunction: (A, A) => A): Monoid[A] = new Monoid[A] {
+    override def concat(x: A, y: A): A = concatFunction(x, y)
+    override def empty: A = emptyValue
+  }
 
   class StringMonoid extends Monoid[String] {
     override def concat(x: String, y: String): String = x + y

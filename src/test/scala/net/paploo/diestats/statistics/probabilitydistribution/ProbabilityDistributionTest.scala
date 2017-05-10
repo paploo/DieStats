@@ -176,8 +176,11 @@ class ProbabilityDistributionTest extends SpecTest {
     )
 
     it("should mapConvolve 3d3b2 distribution from d3 repeated 3 times") {
+      val monoid = implicitly[Monoid[Int]]
+
       val result = ProbabilityDistribution.mapConvolve(Seq(d3, d3, d3)) { rolls =>
-        rolls.sorted.takeRight(2).sum
+        //rolls.sorted.takeRight(2).sum //reduce(monoid.concat) is identical to sum here.
+        rolls.sorted.takeRight(2).reduce(monoid.concat)
       }
 
       result should === (ProbabilityDistribution(

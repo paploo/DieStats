@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
 
 initialCommands in console += "import net.paploo.diestats._;"
 initialCommands in console += "import net.paploo.diestats.expression._;"
+initialCommands in console += "import net.paploo.diestats.statistics._;"
 
 scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
 

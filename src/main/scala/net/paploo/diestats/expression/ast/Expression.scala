@@ -1,6 +1,6 @@
 package net.paploo.diestats.expression.ast
 
-import net.paploo.diestats.expression.evaluator.{DiceExpressionStringEvaluator, DirectEvaluator, Evaluator, NumericEvaluator, OrderedEvaluator, StringMemoryEvaluator}
+import net.paploo.diestats.expression.evaluator.{Evaluator, NumericEvaluator, OrderedEvaluator, StringMemoryEvaluator}
 
 import scala.language.higherKinds
 
@@ -116,41 +116,6 @@ object Expression {
     */
   case class Fetch[A, -E[X,Y] <: StringMemoryEvaluator[X,Y]](id: String)(implicit witness: DomainType[A]) extends Expression[A, E] {
     override def apply[R](e: E[A, R]): R = e.fetch(id)
-  }
-
-}
-
-object Runner {
-
-  //TODO: Now that I have found a way to do this that the Scala compile can actually handle, I need to translate these to tests!
-
-  import net.paploo.diestats.expression.ast.Expression._
-
-  def main(args: Array[String]): Unit = {
-
-    val foo: Expression[String, Evaluator] = Convolve(Values("foo", "bar"), Values("alpha", "beta"))
-
-    val bar: Expression[Int, NumericEvaluator] = Plus(Values(1,2), Values(3,4))
-
-    //Shouldn't compile because plus requires NumericDomainEvaluator.
-    //val bar2: Expression[Int, Evaluator] = Plus(Values(1,2), Values(3,4))
-    //assertCompiles("Expression.Values + 1")
-    //assertDoesNotCompile("")
-
-    //We can be over-sepcific too:
-    val fooN: Expression[String, NumericEvaluator] = foo
-
-
-    val cfoo: Expression[String, Evaluator] = Convolve(foo, foo)
-    println(cfoo(DiceExpressionStringEvaluator[String]))
-
-    //We don't want this to work, since bar requires NumericDomainEvaluator.
-    //val cbar: Expression[Int, Evaluator] = Convolve(bar, bar)
-
-    val cbar2: Expression[Int, NumericEvaluator] = Convolve(bar, bar)
-    println(cbar2(DirectEvaluator.numeric[Int]))
-
-
   }
 
 }
