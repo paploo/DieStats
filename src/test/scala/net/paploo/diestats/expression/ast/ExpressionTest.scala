@@ -1,7 +1,7 @@
 package net.paploo.diestats.expression.ast
 
-import net.paploo.diestats.expression.evaluator.{DiceExpressionStringEvaluator, DirectEvaluator, NumericEvaluator, StringMemoryEvaluator}
-import net.paploo.diestats.statistics.util.{AdditionalOrderings, Monoid}
+import net.paploo.diestats.expression.evaluator.{DiceExpressionStringEvaluator, DirectEvaluator, NumericEvaluator, ProbabilityDistributionEvaluator, StringMemoryEvaluator}
+import net.paploo.diestats.statistics.util.{AdditionalOrderings, CommutativeMonoid, Monoid, Probability}
 import net.paploo.diestats.test.SpecTest
 
 class ExpressionTest extends SpecTest {
@@ -23,10 +23,12 @@ class ExpressionTest extends SpecTest {
       def apply(tosses: Toss*): Tosses = tosses.toList
     }
 
-    implicit val tossesMonoid: Monoid[Tosses] = new Monoid[Tosses] {
-      override def concat(x: Tosses, y: Tosses): Tosses = x ++ y
-      override def empty: Tosses = List.empty
-    }
+    // By using a commutative monoid the order in which Tails/Heads is seen during convolve doesn't affect the outcome,
+    // because concat(Seq(Tails), Seq(Heads)) will produce the same result as concat(Seq(Heads), Seq(Tails); in this case, the number of heads and tails.
+    val tossesCommutativeMonoid: Monoid[Tosses] = CommutativeMonoid.SeqMonoid[Toss]
+
+    // By using the non-commutative monoid, convolution preserves ordering.
+    implicit val tossesMonoid: Monoid[Tosses] = Monoid.SeqMonoid[Toss]
 
     implicit val tossesOrdering: Ordering[Tosses] = AdditionalOrderings.SeqOrdering[Toss]
 
@@ -61,7 +63,11 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        pending
+        val result = coinExpr.apply(ProbabilityDistributionEvaluator.ordered)
+        result.pairs should === (Seq(
+          Seq(Tails) -> Probability(1,2),
+          Seq(Heads) -> Probability(1,2)
+        ))
       }
 
     }
@@ -85,7 +91,14 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        pending
+        
+        val result = convolveExpr.apply(ProbabilityDistributionEvaluator.ordered(tossesMonoid, tossesOrdering))
+        result.pairs should === (Seq(
+          Seq(Tails, Tails) -> Probability(1,4),
+          Seq(Tails, Heads) -> Probability(1,4),
+          Seq(Heads, Tails) -> Probability(1,4),
+          Seq(Heads, Heads) -> Probability(1,4)
+        ))
       }
 
     }
@@ -109,7 +122,50 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        pending
+        val result = bestExpr.apply(ProbabilityDistributionEvaluator.ordered(tossesCommutativeMonoid, tossesOrdering))
+        result.pairs should === (Seq(
+          //Step 1: Build a list of all the combinations:
+          //List(Tails, Tails, Tails, Tails) -> Probability(1,16),
+          //List(Tails, Tails, Tails, Heads) -> Probability(1,16),
+          //List(Tails, Tails, Heads, Tails) -> Probability(1,16),
+          //List(Tails, Tails, Heads, Heads) -> Probability(1,16),
+          //List(Tails, Heads, Tails, Tails) -> Probability(1,16),
+          //List(Tails, Heads, Tails, Heads) -> Probability(1,16),
+          //List(Tails, Heads, Heads, Tails) -> Probability(1,16),
+          //List(Tails, Heads, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Tails, Tails, Tails) -> Probability(1,16),
+          //List(Heads, Tails, Tails, Heads) -> Probability(1,16),
+          //List(Heads, Tails, Heads, Tails) -> Probability(1,16),
+          //List(Heads, Tails, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Tails, Tails) -> Probability(1,16),
+          //List(Heads, Heads, Tails, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Heads, Tails) -> Probability(1,16),
+          //List(Heads, Heads, Heads, Heads) -> Probability(1,16),
+
+          //Step 2: Extract only the best three:
+          //List(Tails, Tails, Tails) -> Probability(1,16),
+          //List(Tails, Tails, Heads) -> Probability(1,16),
+          //List(Tails, Tails, Heads) -> Probability(1,16),
+          //List(Tails, Heads, Heads) -> Probability(1,16),
+          //List(Tails, Heads, Tails) -> Probability(1,16),
+          //List(Tails, Heads, Heads) -> Probability(1,16),
+          //List(Tails, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Tails, Tails) -> Probability(1,16),
+          //List(Heads, Tails, Heads) -> Probability(1,16),
+          //List(Heads, Tails, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Tails) -> Probability(1,16),
+          //List(Heads, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Heads) -> Probability(1,16),
+          //List(Heads, Heads, Heads) -> Probability(1,16)
+
+          //Step 3: Reduce identical lists, and sort by count of tails/heads, and reduce by count.
+          List(Tails, Tails, Tails) -> Probability(1,16),
+          List(Tails, Tails, Heads) -> Probability(4,16),
+          List(Tails, Heads, Heads) -> Probability(6,16),
+          List(Heads, Heads, Heads) -> Probability(5,16)
+        ))
       }
 
     }
@@ -138,7 +194,13 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        pending
+        val result = stmtExpr.apply(ProbabilityDistributionEvaluator.ordered)
+        result.pairs should === (Seq(
+          Seq(Tails, Tails) -> Probability(1,4),
+          Seq(Tails, Heads) -> Probability(1,4),
+          Seq(Heads, Tails) -> Probability(1,4),
+          Seq(Heads, Heads) -> Probability(1,4)
+        ))
       }
 
     }
@@ -254,7 +316,7 @@ class ExpressionTest extends SpecTest {
 
     }
 
-    describe("statenemtns and mamory") {
+    describe("statements and memory") {
 
       implicit val witness = DomainType[Int]
 

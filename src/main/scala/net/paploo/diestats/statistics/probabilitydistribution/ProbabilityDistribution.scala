@@ -117,6 +117,11 @@ trait ProbabilityDistributionCompanion[Repr[_]] extends DistributionCompanion[Pr
     *
     * WARNING: The this method is O(k^n) on n as the number of distributions passsed, and k as the domain size.
     *
+    * Best/Worst can be implemented from this:
+    * 1. It Convolves eac of the distributions into a domain that is a sequence of the domain values,
+    * 2. The mapping function can then select the best/worst n entries, and concatenate them monoidally, and
+    * 3. It'll reduce the probabilities for each of these new domain entries.
+    *
     * @param distributions
     * @param f
     * @tparam A
