@@ -8,7 +8,8 @@ import scala.collection.immutable.NumericRange
   * Base trait of evaluators that directly evaluates like a classic expression.
   * @tparam A The domain type
   */
-trait DirectEvaluator[A] extends DirectEvaluator.RandomValue[A] with StringMemoryEvaluator.StringMemoryMapEvaluator[A, A]
+trait DirectEvaluator[A] extends DirectEvaluator.RandomValue[A]
+  with StringMemoryEvaluator.StringMemoryMapEvaluator[A, A]
 
 object DirectEvaluator {
 
@@ -24,7 +25,11 @@ object DirectEvaluator {
   def numeric[A](random: java.util.Random)(implicit num: Integral[A]): DirectNumericEvaluator[A] =
     new DirectNumericEvaluator[A](random)
 
-  trait Monoidal[A] extends MonoidalEvaluator[A, A]
+  trait Monoidal[A] extends Evaluator[A, A] {
+    def monoid: Monoid[A]
+
+    override def convolve(x: A, y: A): A = monoid.concat(x, y)
+  }
 
   trait RandomValue[A] extends Evaluator[A, A] {
     def random: java.util.Random

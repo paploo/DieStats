@@ -1,17 +1,25 @@
 package net.paploo.diestats.statistics.util
 
+/**
+  * Standard Monoid; implementations seek to obey the Monoid laws:
+  * concat(concat(x, y), z) === concat(x, concat(y, z))
+  * concat(empty, x) === concat(x, empty) === x
+  * @tparam A
+  */
 @annotation.implicitNotFound(msg = "No implicit Monoid defined for ${A}.")
 trait Monoid[A] {
-
   def concat(x: A, y: A): A
-
   def empty: A
 
   def reduce(as: Iterable[A]): A = as.foldLeft(empty)((x,y) => concat(x,y))
-
 }
 
 object Monoid {
+
+  def apply[A](emptyValue: => A)(concatFunction: (A, A) => A): Monoid[A] = new Monoid[A] {
+    override def concat(x: A, y: A): A = concatFunction(x, y)
+    override def empty: A = emptyValue
+  }
 
   class StringMonoid extends Monoid[String] {
     override def concat(x: String, y: String): String = x + y
@@ -44,10 +52,5 @@ object Monoid {
     override def empty: Seq[A] = Vector.empty[A]
   }
   implicit def SeqMonoid[A]: Monoid[Seq[A]] = new SeqMonoid[A]()
-
-  class SortedSeqMonoid[A](implicit ord: Ordering[A]) extends SeqMonoid[A] {
-    override def concat(x: Seq[A], y: Seq[A]): Seq[A] = super.concat(x, y).sorted
-  }
-  def SortedSeqMonoid[A](implicit ord: Ordering[A]): Monoid[Seq[A]] = new SortedSeqMonoid[A]()
 
 }
