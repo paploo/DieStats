@@ -25,7 +25,10 @@ class ExpressionTest extends SpecTest {
 
     // By using a commutative monoid the order in which Tails/Heads is seen during convolve doesn't affect the outcome,
     // because concat(Seq(Tails), Seq(Heads)) will produce the same result as concat(Seq(Heads), Seq(Tails); in this case, the number of heads and tails.
-    implicit val tossesCommutativeMonoid: Monoid[Tosses] = CommutativeMonoid.SeqMonoid[Toss]
+    val tossesCommutativeMonoid: Monoid[Tosses] = CommutativeMonoid.SeqMonoid[Toss]
+
+    // By using the non-commutative monoid, convolution preserves ordering.
+    implicit val tossesMonoid: Monoid[Tosses] = Monoid.SeqMonoid[Toss]
 
     implicit val tossesOrdering: Ordering[Tosses] = AdditionalOrderings.SeqOrdering[Toss]
 
@@ -88,10 +91,12 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        val result = convolveExpr.apply(ProbabilityDistributionEvaluator.ordered)
+        
+        val result = convolveExpr.apply(ProbabilityDistributionEvaluator.ordered(tossesMonoid, tossesOrdering))
         result.pairs should === (Seq(
           Seq(Tails, Tails) -> Probability(1,4),
-          Seq(Tails, Heads) -> Probability(2,4),
+          Seq(Tails, Heads) -> Probability(1,4),
+          Seq(Heads, Tails) -> Probability(1,4),
           Seq(Heads, Heads) -> Probability(1,4)
         ))
       }
@@ -117,7 +122,7 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        val result = bestExpr.apply(ProbabilityDistributionEvaluator.ordered)
+        val result = bestExpr.apply(ProbabilityDistributionEvaluator.ordered(tossesCommutativeMonoid, tossesOrdering))
         result.pairs should === (Seq(
           //Step 1: Build a list of all the combinations:
           //List(Tails, Tails, Tails, Tails) -> Probability(1,16),
@@ -189,7 +194,13 @@ class ExpressionTest extends SpecTest {
       }
 
       it("should have the right probability distribution domain") {
-        pending
+        val result = stmtExpr.apply(ProbabilityDistributionEvaluator.ordered)
+        result.pairs should === (Seq(
+          Seq(Tails, Tails) -> Probability(1,4),
+          Seq(Tails, Heads) -> Probability(1,4),
+          Seq(Heads, Tails) -> Probability(1,4),
+          Seq(Heads, Heads) -> Probability(1,4)
+        ))
       }
 
     }
@@ -305,7 +316,7 @@ class ExpressionTest extends SpecTest {
 
     }
 
-    describe("statenemtns and mamory") {
+    describe("statements and memory") {
 
       implicit val witness = DomainType[Int]
 
