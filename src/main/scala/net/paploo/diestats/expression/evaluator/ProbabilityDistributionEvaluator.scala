@@ -53,13 +53,14 @@ object ProbabilityDistributionEvaluator {
 
     override def quot(x: ProbabilityDistribution[A], y: ProbabilityDistribution[A]): ProbabilityDistribution[A] =
       x.convolve(y)(Monoid(numeric.one)(numeric.quot))
-    //quot isn't a real monoid (it breaks the monoid laws), but it gives us the correct behavior for convolve.
+    //quot isn't a real monoid or even semigroup (it isn't associative), but it gives us the correct behavior for convolve here.
     //Normally you'd want to invert the elements on y, and then use the monoid, but for fractional there isn't a good way to do this with multiplication, so we cheat.
 
     override def negate(x: ProbabilityDistribution[A]): ProbabilityDistribution[A] =
       x.mapDomain(numeric.negate)
 
-    override def rangedValues(max: A): ProbabilityDistribution[A] = rangedValues(numeric.one, max)
+    override def rangedValues(max: A): ProbabilityDistribution[A] =
+      rangedValues(numeric.one, max)
 
     override def rangedValues(min: A, max: A): ProbabilityDistribution[A] = fromValues(
       NumericRange.inclusive(min, max, numeric.one)(numeric)

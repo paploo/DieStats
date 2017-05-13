@@ -11,6 +11,7 @@ import scala.language.higherKinds
   */
 trait ProbabilityDistribution[A] extends Distribution[A, Probability] with StatisticalDistribution[A, Probability] with ProbabilityDistributionable[A] {
 
+  // Technically, we only need a Semigroup[A] instead of a Monoid[A], but I'm attempting to avoid type-class explosion.
   def convolve(that: ProbabilityDistribution[A])(implicit monoid: Monoid[A]): ProbabilityDistribution[A] = {
     // For both better memory usage and speed, use mutable.Map as a buffer, and then make immutable.
     val buffer = mutable.Map.empty[A, Probability]
