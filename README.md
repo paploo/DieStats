@@ -25,7 +25,7 @@ it consists of four main parts:
 
 ## Task Overview
 
-* (90%) Statistics Library Implementation
-* (30%) Expression Library Implementation
+* (DONE) Statistics Library Implementation
+* (DONE) Expression Library Implementation
 * (_) Parser Library Implementation
 * (_) CLI Implementation
