@@ -1,10 +1,6 @@
 # DieStats
 (c) 2016, Jeff Reinecke
 
-Main Repo and issue tracker (login required):
-https://gitlab.com/paploo/DieStats
-
-Public Mirror (no login required):
 https://github.com/paploo/DieStats
 
 ## Overview
