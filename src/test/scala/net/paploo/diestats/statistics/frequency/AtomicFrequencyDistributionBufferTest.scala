@@ -2,6 +2,8 @@ package net.paploo.diestats.statistics.frequency
 
 import net.paploo.diestats.test.SpecTest
 
+import scala.collection.parallel.CollectionConverters._
+
 class AtomicFrequencyDistributionBufferTest extends SpecTest {
 
   describe("object methods") {

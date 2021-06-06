@@ -35,7 +35,7 @@ private[frequency] final class AtomicFrequencyDistributionBuffer[A] extends Freq
 
   override def copy: FrequencyDistributionBuffer[A] = AtomicFrequencyDistributionBuffer.buildFrom(this.toMap)
 
-  override def toMap: Map[A, Long] = frequencies.mapValues(_.longValue()).toMap
+  override def toMap: Map[A, Long] = frequencies.view.mapValues(_.longValue()).toMap
 
   /**
     * Returns an immutable copy of this frequency buffer.

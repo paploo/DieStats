@@ -2,8 +2,6 @@ package net.paploo.diestats.expression.ast
 
 import net.paploo.diestats.expression.evaluator.{Evaluator, NumericEvaluator, OrderedEvaluator, StringMemoryEvaluator}
 
-import scala.language.higherKinds
-
 /**
   * Expression encapsulates a node in the AST over a domain A.
   *

@@ -4,7 +4,6 @@ import net.paploo.diestats.statistics.distribution.{Distribution, DistributionCo
 import net.paploo.diestats.statistics.util.{FrequencyNumeric, Monoid, Probability}
 
 import scala.collection.mutable
-import scala.language.higherKinds
 
 /**
   * Probabilitiy Distribution
