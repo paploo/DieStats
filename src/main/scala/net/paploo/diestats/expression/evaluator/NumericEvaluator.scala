@@ -1,9 +1,5 @@
 package net.paploo.diestats.expression.evaluator
 
-import net.paploo.diestats.statistics.util.Monoid
-
-import scala.collection.immutable.NumericRange
-
 /**
   * The base trait for evaluators over a numeric domain.
   *

@@ -3,8 +3,6 @@ package net.paploo.diestats.statistics.frequency
 import net.paploo.diestats.statistics.distribution.{Distribution, DistributionCompanion, DistributionStatistics, NumericDistributionStatistics, StatisticalDistribution}
 import net.paploo.diestats.statistics.probabilitydistribution.{ProbabilityDistribution, ProbabilityDistributionable}
 
-import scala.language.higherKinds
-
 /**
   * Frequency base trait, defining all methods that can be used by both immutable and mutable subclasses.
   *

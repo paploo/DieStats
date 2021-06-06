@@ -1,7 +1,7 @@
 package net.paploo.diestats.statistics.distribution
 
 import scala.collection.mutable
-import scala.language.{higherKinds, implicitConversions}
+import scala.language.implicitConversions
 
 /**
   * The base trait for discrete distributions over the domain A.

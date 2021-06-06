@@ -52,7 +52,7 @@ object FrequencyNumeric {
   }
   implicit object ProbabilityFrequencyNumeric extends ProbabilityFrequencyNumeric
 
-  trait DoubleFrequencyNumeric extends FrequencyNumeric[Double] with Numeric.DoubleIsFractional with ScalaOrdering.DoubleOrdering {
+  trait DoubleFrequencyNumeric extends FrequencyNumeric[Double] with Numeric.DoubleIsFractional with ScalaOrdering.Double.TotalOrdering {
     override def toProbability(numerator: Double, denominator: Double): Probability = Probability(numerator/denominator)
   }
   implicit object DoubleFrequencyNumeric extends DoubleFrequencyNumeric

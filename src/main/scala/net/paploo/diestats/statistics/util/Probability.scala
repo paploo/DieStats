@@ -1,7 +1,5 @@
 package net.paploo.diestats.statistics.util
 
-import scala.collection.immutable.ListMap
-
 /**
   * Numeric class for representing Probabilities, which must live in the bounds [0,1].
   *
@@ -158,6 +156,7 @@ object Probability {
     override def toLong(x: Probability): Long = x.toDouble.toLong
     override def toFloat(x: Probability): Float = x.toDouble.toFloat
     override def toDouble(x: Probability): Double = x.toDouble
+    override def parseString(str: String): Option[Probability] = str.toDoubleOption.map(Probability.apply)
   }
   object ProbabilityIsConflicted extends ProbabilityIsConflicted
 
