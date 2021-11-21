@@ -11,6 +11,7 @@ target
 # IntelliJ
 .idea
 .idea_modules
+.bsp
 
 # Vim
 *.swp

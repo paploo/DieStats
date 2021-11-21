@@ -62,7 +62,7 @@ object Expression {
   }
 
   case class Worst[A, -E[X,Y] <: OrderedEvaluator[X,Y]](n: Int, xs: Iterable[Expression[A, E]]) extends Expression[A, E] {
-    override def apply[R](e: E[A, R]): R = e.best(n, xs.map(_.apply(e)))
+    override def apply[R](e: E[A, R]): R = e.worst(n, xs.map(_.apply(e)))
   }
 
 
